@@ -12,30 +12,75 @@
     </header>
     <main>
         <div class="kanban-board">
-            <div class="kanban-column">
-                <h2>To Do</h2>
-                <div class="kanban-task">
-                    <p>Task 1: Write the report</p>
+            <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>Backlog</h2>
+                <div class="task-limit">5</div>
+                <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task1">
+                    <p>Research new tools</p>
                 </div>
-                <div class="kanban-task">
-                    <p>Task 2: Design homepage</p>
+                <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task2">
+                    <p>Plan the sprint</p>
+                </div>
+                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task3">
+                    <p>Create wireframes</p>
+                </div>
+                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task4">
+                    <p>Setup project repo</p>
                 </div>
             </div>
+            <div class="divider"></div>
 
-            <div class="kanban-column">
-                <h2>In Progress</h2>
-                <div class="kanban-task">
-                    <p>Task 3: Develop backend API</p>
+            <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>Specification</h2>
+                <div class="task-limit">3</div>
+                <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task5">
+                    <p>Write technical spec</p>
+                </div>
+                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task6">
+                    <p>Discuss with stakeholders</p>
                 </div>
             </div>
+            <div class="divider"></div>
 
-            <div class="kanban-column">
+            <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>Implementation</h2>
+                <div class="task-limit">5</div>
+                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task7">
+                    <p>Implement login feature</p>
+                </div>
+                <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task8">
+                    <p>Build homepage</p>
+                </div>
+                <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task9">
+                    <p>Set up API</p>
+                </div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2>Test</h2>
+                <div class="task-limit">3</div>
+                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task10">
+                    <p>Run unit tests</p>
+                </div>
+                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task11">
+                    <p>Test mobile responsiveness</p>
+                </div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Done</h2>
-                <div class="kanban-task">
-                    <p>Task 4: Fix login bug</p>
+                <div class="task-limit">2</div>
+                <div class="kanban-task yellow" draggable="true" ondragstart="drag(event)" id="task12">
+                    <p>Deploy to staging</p>
+                </div>
+                <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task13">
+                    <p>Code review completed</p>
                 </div>
             </div>
         </div>
     </main>
+    <script src="scripts.js"></script>
 </body>
 </html>
