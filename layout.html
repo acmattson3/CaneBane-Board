@@ -1,84 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <!--Sets size of the whole board-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
         <h1>Kanban Board</h1>
     </header>
     <main>
         <div class="kanban-board">
+            
+
+            <!--Backlog-->
             <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Backlog</h2>
                 <div class="task-limit">5</div>
-                <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task1">
-                    <p>Research new tools</p>
-                </div>
-                <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task2">
-                    <p>Plan the sprint</p>
-                </div>
-                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task3">
-                    <p>Create wireframes</p>
-                </div>
-                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task4">
-                    <p>Setup project repo</p>
-                </div>
-            </div>
+                        <!--Placeholder Tasks-->
+                            <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task1">
+                                <p>Research new tools</p>
+                            </div>
+                            <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task2">
+                                <p>Plan the sprint</p>
+                            </div>
+                        <!--Placeholder Tasks-->
+                            <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task3">
+                                <p>Create wireframes</p>
+                            </div>
+                            <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task4">
+                                <p>Setup project repo</p>
+                            </div>
+                </div>     
+                
+                
+
             <div class="divider"></div>
 
+
+            <!--Specification-->
             <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Specification</h2>
                 <div class="task-limit">3</div>
-                <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task5">
-                    <p>Write technical spec</p>
-                </div>
-                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task6">
-                    <p>Discuss with stakeholders</p>
+                <div class="kanban-subcolumn-container">
+                    <div class="kanban-subcolumn" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <!--Placeholder notes-->
+                        <div class="kanban-task blue" draggable="true" ondragstart="drag(event)" id="task5">
+                            <p>Write technical spec</p>
+                        </div>
+                    </div>
+                <div class="kanban-subcolumn-divider"></div>
+                    <div class="kanban-subcolumn" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task6">
+                            <p>Discuss with stakeholders</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+
+
             <div class="divider"></div>
 
+
+
+            <!--Implementation-->
             <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Implementation</h2>
                 <div class="task-limit">5</div>
-                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task7">
-                    <p>Implement login feature</p>
-                </div>
-                <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task8">
-                    <p>Build homepage</p>
-                </div>
-                <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task9">
-                    <p>Set up API</p>
+                <div class="kanban-subcolumn-container">
+                    <div class="kanban-subcolumn" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <!--Placeholder notes-->
+                        <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task7">
+                            <p>Implement login feature</p>
+                        </div>
+                        <div class="kanban-task pink" draggable="true" ondragstart="drag(event)" id="task8">
+                            <p>Build homepage</p>
+                        </div>
+                    </div>
+                <div class="kanban-subcolumn-divider"></div>
+                    <div class="kanban-subcolumn" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task9">
+                            <p>Set up API</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+
+
             <div class="divider"></div>
 
+
+
+            <!--Testing-->
             <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Test</h2>
                 <div class="task-limit">3</div>
-                <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task10">
-                    <p>Run unit tests</p>
-                </div>
-                <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task11">
-                    <p>Test mobile responsiveness</p>
-                </div>
+                <!--Placeholder notes-->
+                    <div class="kanban-task red" draggable="true" ondragstart="drag(event)" id="task10">
+                        <p>Run unit tests</p>
+                    </div>
+                    <div class="kanban-task green" draggable="true" ondragstart="drag(event)" id="task11">
+                        <p>Test mobile responsiveness</p>
+                    </div>
             </div>
+
+
+
             <div class="divider"></div>
 
+
+
+            <!--Done-->
             <div class="kanban-column" ondragover="allowDrop(event)" ondrop="drop(event)">
                 <h2>Done</h2>
                 <div class="task-limit">2</div>
-                <div class="kanban-task yellow" draggable="true" ondragstart="drag(event)" id="task12">
-                    <p>Deploy to staging</p>
-                </div>
-                <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task13">
-                    <p>Code review completed</p>
-                </div>
+                <!--Placeholder notes-->
+                    <div class="kanban-task yellow" draggable="true" ondragstart="drag(event)" id="task12">
+                        <p>Deploy to staging</p>
+                    </div>
+                    <div class="kanban-task purple" draggable="true" ondragstart="drag(event)" id="task13">
+                        <p>Code review completed</p>
+                    </div>
             </div>
+
+
+            
         </div>
     </main>
     <script src="scripts.js"></script>

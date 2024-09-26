@@ -69,6 +69,40 @@ header h1 {
     margin-bottom: 10px;
 }
 
+/* Subcolumn Container Styling */
+.kanban-subcolumn-container {
+    display: flex;
+    justify-content: space-between;
+    align-items:stretch;
+    width: 100%;
+    gap: 10px;
+}
+
+.kanban-subcolumn {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    width: 48%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Black line divider between subcolumns */
+.kanban-subcolumn-divider {
+    width: 2px;
+    background-color: black;
+    align-self: stretch;
+}
+
+.kanban-column h2 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #1d1d1f;
+    margin-bottom: 10px;
+}
+
 /* Kanban Task Styling */
 .kanban-task {
     width: 100%;
