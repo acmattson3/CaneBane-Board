@@ -212,6 +212,10 @@ body {
     background-color: #ffcc00;
 }
 
+.kanban-task.random {
+    background-color: #ffcc00;
+}
+
 /* Media Queries for Responsive Design */
 @media (max-width: 768px) {
     .kanban-board {
