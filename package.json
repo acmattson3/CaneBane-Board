@@ -1,15 +1,18 @@
 {
-  "dependencies": {
-    "mongodb": "^6.9.0",
-    "next": "^14.2.13",
-    "next-auth": "^4.24.8",
-    "react": "^18.3.1",
-    "react-beautiful-dnd": "^13.1.1",
-    "react-dom": "^18.3.1"
+  "name": "canebane-board",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13"
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "react-router-dom": "^6.26.2"
   }
 }
