@@ -1,12 +1,19 @@
-// client/src/components/Card.js
+// src/components/Card.js
 import React from 'react';
+import { Card as MUICard, CardContent, Typography } from '@mui/material';
 
 function Card({ card }) {
   return (
-    <div>
-      <h4>{card.title}</h4>
-      <p>{card.description}</p>
-    </div>
+    <MUICard sx={{ mb: 2 }}>
+      <CardContent>
+        <Typography variant="h6" component="h3">
+          {card.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {card.description}
+        </Typography>
+      </CardContent>
+    </MUICard>
   );
 }
 

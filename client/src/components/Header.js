@@ -1,18 +1,22 @@
-// client/src/components/Header.js
+// src/components/Header.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 
 function Header() {
   return (
-    <header>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/login">Login</Link></li>
-        </ul>
-      </nav>
-    </header>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          CaneBane
+        </Typography>
+        <Box>
+          <Button color="inherit" component={RouterLink} to="/">Home</Button>
+          <Button color="inherit" component={RouterLink} to="/dashboard">Dashboard</Button>
+          <Button color="inherit" component={RouterLink} to="/login">Login</Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
 

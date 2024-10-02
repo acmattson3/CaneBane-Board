@@ -1,6 +1,7 @@
 // src/pages/BoardView.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { Container, Typography, Box } from '@mui/material';
 import { getBoard } from '../services/api';
 import Column from '../components/Column';
 
@@ -21,17 +22,19 @@ function BoardView() {
     fetchBoard();
   }, [fetchBoard]);
 
-  if (!board) return <div>Loading...</div>;
+  if (!board) return <Typography>Loading...</Typography>;
 
   return (
-    <div>
-      <h2>{board.name}</h2>
-      <div style={{ display: 'flex' }}>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        {board.name}
+      </Typography>
+      <Box sx={{ display: 'flex', overflowX: 'auto' }}>
         {board.columns.map(column => (
           <Column key={column._id} column={column} />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
 }
 

@@ -1,14 +1,23 @@
-// client/src/pages/LandingPage.js
+// src/pages/LandingPage.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { Container, Typography, Button, Box } from '@mui/material';
 
 function LandingPage() {
   return (
-    <div>
-      <h1>Welcome to CaneBane</h1>
-      <p>Your personal Kanban board manager</p>
-      <Link to="/login">Login</Link>
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="h2" component="h1" gutterBottom>
+          Welcome to CaneBane
+        </Typography>
+        <Typography variant="h5" component="h2" gutterBottom>
+          Your personal Kanban board manager
+        </Typography>
+        <Button variant="contained" color="primary" component={RouterLink} to="/login" sx={{ mt: 4 }}>
+          Get Started
+        </Button>
+      </Box>
+    </Container>
   );
 }
 
