@@ -1,10 +1,11 @@
-// src/components/Login.js
+// src/components/SignUp.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
-import { login } from '../services/auth';
+import { register } from '../services/auth';
 
-function Login() {
+function SignUp() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,11 +15,10 @@ function Login() {
     e.preventDefault();
     setError('');
     try {
-      await login(email, password);
-      navigate('/dashboard'); // Redirect to dashboard after successful login
+      await register(name, email, password);
+      navigate('/login'); // Redirect to login page after successful registration
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Network error. Please try again.');
+      setError(err.response?.data?.message || 'An error occurred during registration');
     }
   };
 
@@ -26,9 +26,21 @@ function Login() {
     <Container maxWidth="xs">
       <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography component="h1" variant="h5">
-          Sign In
+          Sign Up
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="name"
+            label="Full Name"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <TextField
             margin="normal"
             required
@@ -37,7 +49,6 @@ function Login() {
             label="Email Address"
             name="email"
             autoComplete="email"
-            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -49,7 +60,7 @@ function Login() {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -59,7 +70,7 @@ function Login() {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Sign Up
           </Button>
           {error && (
             <Typography color="error" align="center">
@@ -72,4 +83,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default SignUp;

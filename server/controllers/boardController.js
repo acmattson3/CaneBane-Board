@@ -24,11 +24,29 @@ exports.getBoard = async (req, res) => {
 
 exports.createBoard = async (req, res) => {
   try {
-    const board = new Board({ ...req.body, owner: req.user._id });
+    const { name } = req.body;
+    const board = new Board({ name, owner: req.user._id });
     await board.save();
     res.status(201).json(board);
   } catch (error) {
-    res.status(400).json({ message: 'Board creation failed' });
+    res.status(400).json({ message: 'Error creating board' });
+  }
+};
+
+exports.joinBoard = async (req, res) => {
+  try {
+      const { code } = req.body;
+      const board = await Board.findOne({ code });
+      if (!board) {
+          return res.status(404).json({ message: 'Board not found' });
+      }
+      if (!board.members.includes(req.user._id)) {
+          board.members.push(req.user._id);
+          await board.save();
+      }
+      res.json(board);
+  } catch (error) {
+      res.status(400).json({ message: 'Error joining board' });
   }
 };
 

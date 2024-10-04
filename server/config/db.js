@@ -3,18 +3,10 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-      useFindAndModify: false,
-      ssl: true,
-      sslValidate: true,
-      sslCA: require('path').join(__dirname, 'ca-certificate.crt') // If you have a CA certificate
-    });
-    console.log('MongoDB Atlas connected successfully');
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected successfully');
   } catch (error) {
-    console.error('MongoDB Atlas connection error:', error);
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };

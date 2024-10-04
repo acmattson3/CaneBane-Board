@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import BoardView from './pages/BoardView';
 import Login from './components/Login';
 import Header from './components/Header';
+import SignUp from './components/SignUp';
 
 const theme = createTheme({
   palette: {
@@ -28,6 +29,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/board/:id" element={<BoardView />} />
         </Routes>
