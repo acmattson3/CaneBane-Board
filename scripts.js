@@ -11,10 +11,16 @@ function allowDrop(event) {
 // Drop the task into the new column
 function drop(event) {
     event.preventDefault();
-    const data = event.dataTransfer.getData("text");
-    const task = document.getElementById(data);
-    event.target.appendChild(task);
+    const target = event.target;
+
+    // Only allow drop in valid kanban-subcolumn, not on the divider
+    if (target.classList.contains("kanban-subcolumn")) {
+        const data = event.dataTransfer.getData("text");
+        const task = document.getElementById(data);
+        target.appendChild(task);
+    }
 }
+
 
 // Toggle SubMenu for right-click options
 function toggleSubMenu() {
