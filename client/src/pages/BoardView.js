@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Grid, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
 
 const columns = [
@@ -16,6 +17,7 @@ function BoardView() {
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [activeColumn, setActiveColumn] = useState('');
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -34,22 +36,29 @@ function BoardView() {
   }, [id]);
 
   const groupTasksByStatus = (tasks) => {
-    return tasks.reduce((acc, task) => {
-      const status = task.status.toLowerCase().replace(' ', '');
-      if (!acc[status]) {
-        acc[status] = [];
-      }
-      acc[status].push(task);
+    const grouped = columns.reduce((acc, column) => {
+      acc[column.id] = [];
       return acc;
     }, {});
+
+    tasks.forEach(task => {
+      const status = task.status.toLowerCase().replace(' ', '');
+      if (grouped[status]) {
+        grouped[status].push(task);
+      } else {
+        grouped['backlog'].push(task);
+      }
+    });
+
+    return grouped;
   };
 
   const handleNewTask = async () => {
     try {
-      const newTask = await createTask(id, { title: newTaskTitle, status: 'Backlog' });
+      const newTask = await createTask(id, { title: newTaskTitle, status: columns.find(col => col.id === activeColumn).title });
       setTasks(prev => ({
         ...prev,
-        backlog: [...(prev.backlog || []), newTask]
+        [activeColumn]: [...(prev[activeColumn] || []), newTask]
       }));
       setNewTaskTitle('');
       setOpenNewTaskDialog(false);
@@ -61,42 +70,30 @@ function BoardView() {
   const onDragEnd = async (result) => {
     const { source, destination } = result;
 
-    if (!destination) return;
+    if (!destination) {
+      return;
+    }
 
     const sourceColumn = source.droppableId;
     const destColumn = destination.droppableId;
 
-    if (sourceColumn === destColumn) {
-      const newColumnTasks = Array.from(tasks[sourceColumn]);
-      const [reorderedItem] = newColumnTasks.splice(source.index, 1);
-      newColumnTasks.splice(destination.index, 0, reorderedItem);
+    const newTasks = { ...tasks };
 
-      setTasks({
-        ...tasks,
-        [sourceColumn]: newColumnTasks
-      });
-    } else {
-      const sourceColumnTasks = Array.from(tasks[sourceColumn]);
-      const destColumnTasks = Array.from(tasks[destColumn]);
-      const [movedTask] = sourceColumnTasks.splice(source.index, 1);
+    if (!newTasks[sourceColumn]) newTasks[sourceColumn] = [];
+    if (!newTasks[destColumn]) newTasks[destColumn] = [];
 
-      // Update task status
-      movedTask.status = columns.find(col => col.id === destColumn).title;
-      
-      destColumnTasks.splice(destination.index, 0, movedTask);
+    const [movedTask] = newTasks[sourceColumn].splice(source.index, 1);
+    newTasks[destColumn].splice(destination.index, 0, movedTask);
 
-      setTasks({
-        ...tasks,
-        [sourceColumn]: sourceColumnTasks,
-        [destColumn]: destColumnTasks
-      });
+    movedTask.status = columns.find(col => col.id === destColumn).title;
 
-      // Update task on the server
-      try {
-        await updateTask(id, movedTask._id, { status: movedTask.status });
-      } catch (error) {
-        console.error('Error updating task:', error);
-      }
+    setTasks(newTasks);
+
+    try {
+      await updateTask(id, movedTask._id, { status: movedTask.status });
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setTasks(tasks);
     }
   };
 
@@ -105,46 +102,66 @@ function BoardView() {
   }
 
   return (
-    <Container>
+    <Container maxWidth="xl">
       <Typography variant="h4" gutterBottom>
         {board.name}
       </Typography>
-      <Button variant="contained" onClick={() => setOpenNewTaskDialog(true)}>
-        New Task
-      </Button>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Box mt={3}>
-          <Grid container spacing={3}>
-            {columns.map(column => (
-              <Grid item xs={3} key={column.id}>
-                <Paper elevation={3} sx={{ p: 2, height: '70vh', overflow: 'auto' }}>
-                  <Typography variant="h6" gutterBottom>{column.title}</Typography>
-                  <Droppable droppableId={column.id}>
-                    {(provided) => (
-                      <div {...provided.droppableProps} ref={provided.innerRef}>
-                        {(tasks[column.id] || []).map((task, index) => (
-                          <Draggable key={task._id} draggableId={task._id} index={index}>
-                            {(provided) => (
-                              <Paper
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                sx={{ p: 1, mb: 1, backgroundColor: '#f0f0f0' }}
-                              >
-                                {task.title}
-                              </Paper>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+        <Grid container spacing={2}>
+          {columns.map(column => (
+            <Grid item xs={12} sm={6} md={3} key={column.id}>
+              <Paper 
+                elevation={3} 
+                sx={{ 
+                  p: 2, 
+                  height: 'calc(100vh - 200px)', 
+                  display: 'flex', 
+                  flexDirection: 'column'
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
+                  {column.title}
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  startIcon={<AddIcon />} 
+                  onClick={() => {
+                    setActiveColumn(column.id);
+                    setOpenNewTaskDialog(true);
+                  }}
+                  sx={{ mb: 2 }}
+                >
+                  New Task
+                </Button>
+                <Droppable droppableId={column.id}>
+                  {(provided) => (
+                    <div 
+                      {...provided.droppableProps} 
+                      ref={provided.innerRef} 
+                      style={{ flexGrow: 1, overflowY: 'auto' }}
+                    >
+                      {(tasks[column.id] || []).map((task, index) => (
+                        <Draggable key={task._id} draggableId={task._id} index={index}>
+                          {(provided) => (
+                            <Paper
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              sx={{ p: 2, mb: 2, backgroundColor: '#f0f0f0' }}
+                            >
+                              {task.title}
+                            </Paper>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       </DragDropContext>
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
