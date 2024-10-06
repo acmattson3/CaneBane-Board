@@ -1,5 +1,4 @@
-// src/pages/Dashboard.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -14,11 +13,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  TextField,
+  TextField
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { getBoards, createBoard, joinBoard } from '../services/api';
+import { getCurrentUser } from '../services/auth';
 
 function Dashboard() {
   const [boards, setBoards] = useState([]);
@@ -26,42 +26,78 @@ function Dashboard() {
   const [openJoinDialog, setOpenJoinDialog] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [boardCode, setBoardCode] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const currentUser = getCurrentUser();
+  const fetchedRef = useRef(false);
 
-  useEffect(() => {
-    fetchBoards();
-  }, []);
-
-  const fetchBoards = async () => {
+  const fetchBoards = useCallback(async () => {
     try {
+      console.log('Fetching boards...');
       const data = await getBoards();
+      console.log('Fetched boards:', data);
       setBoards(data);
     } catch (error) {
       console.error('Error fetching boards:', error);
+      setError('Failed to fetch boards');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    console.log('Dashboard useEffect running');
+    if (!currentUser) {
+      console.log('No current user, navigating to login');
+      navigate('/login');
+    } else if (!fetchedRef.current) {
+      console.log('Current user found, fetching boards');
+      fetchBoards();
+      fetchedRef.current = true;
+    }
+  }, [currentUser, navigate, fetchBoards]);
+
+  useEffect(() => {
+    console.log('Boards state updated:', boards);
+  }, [boards]);
 
   const handleCreateBoard = async () => {
     try {
+      setError('');
+      console.log('Creating new board with name:', newBoardName);
       const newBoard = await createBoard(newBoardName);
-      setBoards([...boards, newBoard]);
-      setOpenCreateDialog(false);
+      console.log('New board created:', newBoard);
+      setBoards(prevBoards => {
+        const updatedBoards = [...prevBoards, newBoard];
+        console.log('Updated boards:', updatedBoards);
+        return updatedBoards;
+      });
       setNewBoardName('');
+      setOpenCreateDialog(false);
     } catch (error) {
       console.error('Error creating board:', error);
+      setError(error.response?.data?.message || 'Error creating board');
     }
   };
 
   const handleJoinBoard = async () => {
     try {
+      setError('');
+      console.log('Joining board with code:', boardCode);
       const joinedBoard = await joinBoard(boardCode);
-      setBoards([...boards, joinedBoard]);
-      setOpenJoinDialog(false);
+      console.log('Joined board:', joinedBoard);
+      setBoards(prevBoards => [...prevBoards, joinedBoard]);
       setBoardCode('');
+      setOpenJoinDialog(false);
     } catch (error) {
       console.error('Error joining board:', error);
+      setError(error.response?.data?.message || 'Error joining board');
     }
   };
+
+  console.log('Current boards state:', boards);
+
+  if (!currentUser) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -89,6 +125,11 @@ function Dashboard() {
           </Button>
         </Grid>
       </Grid>
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         {boards.map(board => (
           <Grid item xs={12} sm={6} md={4} key={board._id}>
@@ -117,7 +158,7 @@ function Dashboard() {
           </DialogContentText>
           <TextField
             autoFocus
-            margin="dense"
+            margin="normal"
             id="name"
             label="Board Name"
             type="text"
@@ -142,7 +183,7 @@ function Dashboard() {
           </DialogContentText>
           <TextField
             autoFocus
-            margin="dense"
+            margin="normal"
             id="code"
             label="Board Code"
             type="text"

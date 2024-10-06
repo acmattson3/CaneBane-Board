@@ -1,7 +1,7 @@
 {
   "name": "canebane-server",
   "version": "1.0.0",
-  "description": "Backend for CaneBane Kanban board application",
+  "description": "CaneBane Board Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,9 +13,10 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.12.3"
+    "mongoose": "^5.13.7",
+    "shortid": "^2.2.16"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.12"
   }
 }
