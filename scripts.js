@@ -12,15 +12,81 @@ function allowDrop(event) {
 function drop(event) {
     event.preventDefault();
     const target = event.target;
+    
+    // Get the column the task is being dropped into
+    const column = target.closest('.kanban-column');
 
-    // Only allow drop in valid kanban-subcolumn, not on the divider
-    if (target.classList.contains("kanban-subcolumn")) {
-        const data = event.dataTransfer.getData("text");
-        const task = document.getElementById(data);
-        target.appendChild(task);
+    const data = event.dataTransfer.getData('text');
+    const task = document.getElementById(data);
+
+    // Find the original column from which the task is being moved
+    const originalColumn = task.closest('.kanban-column');
+
+    // Check if WIP limit is reached in the new column
+    if (isWipLimitReached(column)) {
+        // Show override popup if WIP limit is reached
+        showOverridePopup(column, task, target);
+    } else {
+        // Only allow drop in valid kanban-subcolumn or kanban-column, not on the divider
+        if (target.classList.contains('kanban-subcolumn') || target.classList.contains('kanban-column')) {
+            target.appendChild(task);
+        }
+    }
+
+    // Update the color of both the new column and the original column
+    updateColumnColor(column);
+    if (originalColumn && originalColumn !== column) {
+        updateColumnColor(originalColumn);
     }
 }
 
+// Function to count the tasks in a column including subcolumns, excluding subcolumn elements themselves
+function countTasksInColumn(column) {
+    let totalTasks = 0;
+
+    // Get tasks in the main column (excluding subcolumns themselves)
+    const mainTasks = column.querySelectorAll('.kanban-task:not(.kanban-subcolumn .kanban-task)');
+    totalTasks += mainTasks.length;
+
+    // Get tasks in each subcolumn
+    const subcolumns = column.querySelectorAll('.kanban-subcolumn');
+    subcolumns.forEach(subcolumn => {
+        const subcolumnTasks = subcolumn.querySelectorAll('.kanban-task');
+        totalTasks += subcolumnTasks.length;
+    });
+
+    return totalTasks;
+}
+
+
+function isWipLimitReached(column) {
+    const taskLimit = parseInt(column.querySelector('.task-limit').textContent, 10);
+    const currentTaskCount = countTasksInColumn(column);
+    return currentTaskCount > taskLimit;
+}
+
+// Function to update the column's background color based on WIP status
+function updateColumnColor(column) {
+    if (isWipLimitReached(column)) {
+        column.style.backgroundColor = 'rgba(255, 165, 0, 0.3)'; // Pale orange
+    } else {
+        column.style.backgroundColor = ''; // Reset to default
+    }
+}
+
+// Function to show the override prompt
+function showOverridePopup(column, task, target) {
+    // Create a confirmation dialog
+    const confirmation = confirm('WIP limit reached! Do you want to override and add this task anyway?');
+    
+    if (confirmation) {
+        // Turn the column background to pale orange
+        column.style.backgroundColor = 'rgba(255, 165, 0, 0.3)'; // Pale orange color
+        
+        // Allow the task to be dropped
+        target.appendChild(task);
+    }
+}
 
 // Toggle SubMenu for right-click options
 function toggleSubMenu() {
