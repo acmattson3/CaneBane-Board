@@ -19,14 +19,8 @@ apiClient.interceptors.request.use(
 );
 
 export const getBoards = async () => {
-  try {
-    const response = await apiClient.get('/boards');
-    console.log('API response for getBoards:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error in getBoards API call:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/boards');
+  return response.data;
 };
 
 export const createBoard = async (name) => {
@@ -40,14 +34,11 @@ export const joinBoard = async (code) => {
 };
 
 export const getBoard = async (id) => {
-  try {
-    console.log('Fetching board with id:', id);
-    const response = await apiClient.get(`/boards/${id}`);
-    console.log('API response for getBoard:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error in getBoard API call:', error);
-    console.error('Error response:', error.response);
-    throw error;
-  }
+  const response = await apiClient.get(`/boards/${id}`);
+  return response.data;
+};
+
+export const createTask = async (boardId, taskData) => {
+  const response = await apiClient.post(`/boards/${boardId}/tasks`, taskData);
+  return response.data;
 };

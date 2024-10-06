@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
 const shortid = require('shortid');
 
+const taskSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ['Backlog', 'To Do', 'In Progress', 'Done'],
+    default: 'Backlog'
+  }
+}, { timestamps: true });
+
 const boardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -20,7 +34,8 @@ const boardSchema = new mongoose.Schema({
     type: String,
     unique: true,
     default: shortid.generate
-  }
+  },
+  tasks: [taskSchema]
 }, {
   timestamps: true
 });
