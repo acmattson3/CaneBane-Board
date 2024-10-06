@@ -89,3 +89,28 @@ exports.createTask = async (req, res) => {
     res.status(500).json({ message: 'Error creating task', error: error.message });
   }
 };
+
+exports.updateTask = async (req, res) => {
+  try {
+    const { boardId, taskId } = req.params;
+    const { status } = req.body;
+
+    const board = await Board.findById(boardId);
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+
+    const task = board.tasks.id(taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    task.status = status;
+    await board.save();
+
+    res.json(task);
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ message: 'Error updating task', error: error.message });
+  }
+};

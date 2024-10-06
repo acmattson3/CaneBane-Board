@@ -42,3 +42,8 @@ export const createTask = async (boardId, taskData) => {
   const response = await apiClient.post(`/boards/${boardId}/tasks`, taskData);
   return response.data;
 };
+
+export const updateTask = async (boardId, taskId, taskData) => {
+  const response = await apiClient.put(`/boards/${boardId}/tasks/${taskId}`, taskData);
+  return response.data;
+};
