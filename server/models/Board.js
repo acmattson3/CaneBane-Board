@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const shortid = require('shortid');
 
 const taskSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+    required: true
+  },
   title: {
     type: String,
     required: true,
@@ -15,7 +20,7 @@ const taskSchema = new mongoose.Schema({
   },
   color: {
     type: String,
-    required: false  // Change this to false
+    required: false  
   },
   description: {
     type: String,
