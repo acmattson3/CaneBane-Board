@@ -57,10 +57,15 @@ function BoardView() {
       const status = task.status.toLowerCase();
       if (status.includes('specification') || status.includes('implementation')) {
         const [mainStatus, subStatus] = status.split(' ');
-        grouped[mainStatus][subStatus.toLowerCase()].push(task);
-      } else {
-        grouped[status] = grouped[status] || [];
+        if (subStatus === 'done') {
+          grouped[mainStatus].done.push(task);
+        } else {
+          grouped[mainStatus].active.push(task);
+        }
+      } else if (grouped[status]) {
         grouped[status].push(task);
+      } else {
+        grouped['backlog'].push(task);
       }
     });
 
@@ -118,11 +123,9 @@ function BoardView() {
     // Add to destination
     if (destColumn.includes('-')) {
       const [colId, section] = destColumn.split('-');
-      newTasks[colId][section] = newTasks[colId][section] || [];
       newTasks[colId][section].splice(destination.index, 0, movedTask);
       movedTask.status = `${colId} ${section}`;
     } else {
-      newTasks[destColumn] = newTasks[destColumn] || [];
       newTasks[destColumn].splice(destination.index, 0, movedTask);
       movedTask.status = destColumn;
     }
@@ -173,12 +176,12 @@ function BoardView() {
                   {column.title}
                 </Typography>
                 {column.hasSubsections ? (
-                  <Box display="flex" flexGrow={1}>
-                    <Box width="50%" pr={1}>
+                  <Box display="flex" flexDirection="column" flexGrow={1}>
+                    <Box flexGrow={1}>
                       <Typography variant="subtitle2">Active</Typography>
                       <Droppable droppableId={`${column.id}-active`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ minHeight: '100px', overflowY: 'auto' }}>
                             {(tasks[column.id]?.active || []).map((task, index) => (
                               <Draggable key={task._id} draggableId={task._id} index={index}>
                                 {(provided) => (
@@ -198,11 +201,11 @@ function BoardView() {
                         )}
                       </Droppable>
                     </Box>
-                    <Box width="50%" pl={1} borderLeft={1} borderColor="divider">
+                    <Box flexGrow={1}>
                       <Typography variant="subtitle2">Done</Typography>
                       <Droppable droppableId={`${column.id}-done`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ minHeight: '100px', overflowY: 'auto' }}>
                             {(tasks[column.id]?.done || []).map((task, index) => (
                               <Draggable key={task._id} draggableId={task._id} index={index}>
                                 {(provided) => (
