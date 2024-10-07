@@ -29,8 +29,10 @@ function BoardView() {
     const fetchBoard = async () => {
       try {
         const data = await getBoard(id);
+        console.log('Fetched board data:', data);
         setBoard(data);
         const groupedTasks = groupTasksByStatus(data.tasks || []);
+        console.log('Grouped tasks:', groupedTasks);
         setTasks(groupedTasks);
       } catch (error) {
         console.error('Error fetching board:', error);
@@ -40,25 +42,25 @@ function BoardView() {
   }, [id]);
 
   const groupTasksByStatus = (tasks) => {
+    console.log('Grouping tasks:', tasks);
     const grouped = columns.reduce((acc, column) => {
-      acc[column.id] = column.hasSubsections ? { active: [], done: [] } : [];
+      if (column.hasSubsections) {
+        acc[column.id] = { active: [], done: [] };
+      } else {
+        acc[column.id] = [];
+      }
       return acc;
     }, {});
 
     tasks.forEach(task => {
-      const status = task.status.toLowerCase().replace(' ', '');
-      if (grouped[status]) {
-        if (typeof grouped[status] === 'object') {
-          if (task.status.includes('Done')) {
-            grouped[status].done.push(task);
-          } else {
-            grouped[status].active.push(task);
-          }
-        } else {
-          grouped[status].push(task);
-        }
+      console.log('Processing task:', task);
+      const status = task.status.toLowerCase();
+      if (status.includes('specification') || status.includes('implementation')) {
+        const [mainStatus, subStatus] = status.split(' ');
+        grouped[mainStatus][subStatus.toLowerCase()].push(task);
       } else {
-        grouped['backlog'].push(task);
+        grouped[status] = grouped[status] || [];
+        grouped[status].push(task);
       }
     });
 
@@ -87,41 +89,45 @@ function BoardView() {
   };
 
   const onDragEnd = async (result) => {
-    const { source, destination } = result;
+    console.log('Drag ended:', result);
+    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
     const sourceColumn = source.droppableId;
     const destColumn = destination.droppableId;
 
-    const newTasks = { ...tasks };
+    let newTasks = { ...tasks };
+    let movedTask;
 
-    let sourceArray, destArray;
-
+    // Remove from source
     if (sourceColumn.includes('-')) {
       const [colId, section] = sourceColumn.split('-');
-      sourceArray = newTasks[colId]?.[section] || [];
+      movedTask = newTasks[colId][section].find(task => task._id === draggableId);
+      newTasks[colId][section] = newTasks[colId][section].filter(task => task._id !== draggableId);
     } else {
-      sourceArray = newTasks[sourceColumn] || [];
+      movedTask = newTasks[sourceColumn].find(task => task._id === draggableId);
+      newTasks[sourceColumn] = newTasks[sourceColumn].filter(task => task._id !== draggableId);
     }
 
+    if (!movedTask) {
+      console.error('Task not found:', draggableId);
+      return;
+    }
+
+    // Add to destination
     if (destColumn.includes('-')) {
       const [colId, section] = destColumn.split('-');
-      destArray = newTasks[colId]?.[section] || [];
+      newTasks[colId][section] = newTasks[colId][section] || [];
+      newTasks[colId][section].splice(destination.index, 0, movedTask);
+      movedTask.status = `${colId} ${section}`;
     } else {
-      destArray = newTasks[destColumn] || [];
+      newTasks[destColumn] = newTasks[destColumn] || [];
+      newTasks[destColumn].splice(destination.index, 0, movedTask);
+      movedTask.status = destColumn;
     }
 
-    const [movedTask] = sourceArray.splice(source.index, 1);
-    destArray.splice(destination.index, 0, movedTask);
-
-    // Update task status
-    const newStatus = destColumn.includes('-') 
-      ? `${destColumn.split('-')[0].charAt(0).toUpperCase() + destColumn.split('-')[0].slice(1)} ${destColumn.split('-')[1].charAt(0).toUpperCase() + destColumn.split('-')[1].slice(1)}`
-      : destColumn.charAt(0).toUpperCase() + destColumn.slice(1);
-    
-    movedTask.status = newStatus;
-
+    console.log('New tasks state:', newTasks);
     setTasks(newTasks);
 
     try {
