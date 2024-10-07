@@ -183,7 +183,7 @@ function BoardView() {
                         {(provided) => (
                           <div {...provided.droppableProps} ref={provided.innerRef} style={{ minHeight: '100px', overflowY: 'auto' }}>
                             {(tasks[column.id]?.active || []).map((task, index) => (
-                              <Draggable key={task._id} draggableId={task._id} index={index}>
+                              <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
                                 {(provided) => (
                                   <Paper
                                     ref={provided.innerRef}
