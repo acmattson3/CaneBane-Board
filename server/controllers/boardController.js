@@ -71,17 +71,24 @@ exports.deleteBoard = async (req, res) => {
 
 exports.createTask = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { title, status } = req.body;
+    const { id } = req.params; // board id
+    const { title, status, color } = req.body;
     
     const board = await Board.findById(id);
     if (!board) {
       return res.status(404).json({ message: 'Board not found' });
     }
 
-    const newTask = { title, status };
+    const newTask = {
+      title,
+      status: status || 'Backlog', // Default to 'Backlog' if no status is provided
+      color: color || '#' + Math.floor(Math.random()*16777215).toString(16) // Generate a random color if not provided
+    };
+
     board.tasks.push(newTask);
     await board.save();
+
+    console.log('New task created:', newTask);
 
     res.status(201).json(newTask);
   } catch (error) {

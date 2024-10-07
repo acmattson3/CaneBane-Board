@@ -43,7 +43,12 @@ export const createTask = async (boardId, taskData) => {
   return response.data;
 };
 
-export const updateTask = async (boardId, taskId, taskData) => {
-  const response = await apiClient.put(`/boards/${boardId}/tasks/${taskId}`, taskData);
-  return response.data;
+export const updateTask = async (boardId, taskId, updatedData) => {
+  try {
+    const response = await apiClient.put(`/boards/${boardId}/tasks/${taskId}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
 };
