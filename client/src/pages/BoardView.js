@@ -116,7 +116,8 @@ function BoardView() {
                                 ...provided.draggableProps.style,
                               }}
                             >
-                              {task.title}
+                              <Typography variant="body2" gutterBottom>ID: {task._id}</Typography>
+                              <Typography>{task.title}</Typography>
                             </Paper>
                           )}
                         </Draggable>
