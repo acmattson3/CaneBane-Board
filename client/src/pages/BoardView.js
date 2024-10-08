@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Grid, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Box } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
@@ -160,9 +160,9 @@ function BoardView() {
         Add Task
       </Button>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Grid container spacing={2}>
+        <Box display="flex" flexWrap="wrap" gap={2}>
           {columns.map(column => (
-            <Grid item xs={12} sm={6} md={2.4} key={column.id}>
+            <Box key={column.id} flexGrow={1} flexBasis="calc(20% - 16px)" minWidth="200px">
               <Paper 
                 elevation={3} 
                 sx={{ 
@@ -250,9 +250,9 @@ function BoardView() {
                   </Droppable>
                 )}
               </Paper>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </DragDropContext>
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
