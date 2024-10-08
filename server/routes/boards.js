@@ -6,7 +6,7 @@ const {
   updateBoard, 
   deleteBoard, 
   createTask,
-  updateTask  // Add this line
+  updateTask 
 } = require('../controllers/boardController');
 const auth = require('../middleware/auth');
 
@@ -20,6 +20,6 @@ router.post('/', createBoard);
 router.put('/:id', updateBoard);
 router.delete('/:id', deleteBoard);
 router.post('/:id/tasks', createTask);
-router.put('/:boardId/tasks/:taskId', updateTask);  // This line should now work
+router.put('/:boardId/tasks/:taskId', updateTask); 
 
 module.exports = router;
