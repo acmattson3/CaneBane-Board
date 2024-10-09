@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
@@ -195,11 +195,11 @@ function BoardView() {
                 </Typography>
                 {column.hasSubsections ? (
                   <Box display="flex" flexGrow={1}>
-                    <Box width="50%" pr={1}>
+                    <Box width="calc(50% - 2px)" pr={1} display="flex" flexDirection="column">
                       <Typography variant="subtitle2" align="center">Done</Typography>
                       <Droppable droppableId={`${column.id}-done`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
                             {(tasks[column.id]?.done || []).map((task, index) => (
                               <Draggable key={task._id} draggableId={task._id} index={index}>
                                 {(provided) => (
@@ -219,11 +219,12 @@ function BoardView() {
                         )}
                       </Droppable>
                     </Box>
-                    <Box width="50%" pl={1}>
+                    <Divider orientation="vertical" flexItem sx={{ width: 2, bgcolor: 'grey.300' }} />
+                    <Box width="calc(50% - 2px)" pl={1} display="flex" flexDirection="column">
                       <Typography variant="subtitle2" align="center">Active</Typography>
                       <Droppable droppableId={`${column.id}-active`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
                             {(tasks[column.id]?.active || []).map((task, index) => (
                               <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
                                 {(provided) => (
@@ -272,6 +273,7 @@ function BoardView() {
           ))}
         </Box>
       </DragDropContext>
+
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
