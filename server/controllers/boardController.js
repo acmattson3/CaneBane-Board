@@ -102,22 +102,27 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { boardId, taskId } = req.params;
-    const { status } = req.body;
+    const { title, description, status } = req.body;
 
     const board = await Board.findById(boardId);
     if (!board) {
       return res.status(404).json({ message: 'Board not found' });
     }
 
-    const task = board.tasks.id(taskId);
-    if (!task) {
+    const taskIndex = board.tasks.findIndex(task => task._id.toString() === taskId);
+    if (taskIndex === -1) {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    task.status = status;
+    // Update the task
+    board.tasks[taskIndex].title = title || board.tasks[taskIndex].title;
+    board.tasks[taskIndex].description = description || board.tasks[taskIndex].description;
+    board.tasks[taskIndex].status = status || board.tasks[taskIndex].status;
+    board.tasks[taskIndex].updatedAt = new Date();
+
     await board.save();
 
-    res.json(task);
+    res.json(board.tasks[taskIndex]);
   } catch (error) {
     console.error('Error updating task:', error);
     res.status(500).json({ message: 'Error updating task', error: error.message });

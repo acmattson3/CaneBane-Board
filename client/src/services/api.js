@@ -17,7 +17,6 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
 export const getBoards = async () => {
   const response = await apiClient.get('/boards');
   return response.data;
@@ -46,9 +45,13 @@ export const createTask = async (boardId, taskData) => {
 export const updateTask = async (boardId, taskId, updatedData) => {
   try {
     const response = await apiClient.put(`/boards/${boardId}/tasks/${taskId}`, updatedData);
-    return response.data;
+    return { success: true, task: response.data };
   } catch (error) {
     console.error('Error updating task:', error);
-    throw error;
+    return { 
+      success: false, 
+      message: error.response?.data?.message || 'Failed to update task',
+      error: error.response?.data?.error || error.message
+    };
   }
 };

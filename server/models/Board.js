@@ -12,6 +12,11 @@ const taskSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  description: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   status: {
     type: String,
     enum: ['Backlog', 'Specification Active', 'Specification Done', 'Implementation Active', 'Implementation Done', 'Test', 'Done'],
@@ -21,9 +26,10 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: false  
   },
-  description: {
-    type: String,
-    trim: true
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
   },
   createdAt: {
     type: Date,

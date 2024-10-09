@@ -4,6 +4,7 @@ import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogAct
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
+import TaskDetailsDialog from '../components/TasksDetails';
 
 const columns = [
   { id: 'backlog', title: 'Backlog', hasSubsections: false },
@@ -23,6 +24,8 @@ function BoardView() {
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
   const { id } = useParams();
 
   useEffect(() => {
@@ -159,124 +162,174 @@ function BoardView() {
     }
   };
 
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setTaskDetailsOpen(true);
+  };
+
+  const handleTaskUpdate = async (updatedTask) => {
+    try {
+      const response = await updateTask(id, updatedTask._id, {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        status: updatedTask.status
+      });
+      
+      if (response.success) {
+        setTasks(prevTasks => {
+          const newTasks = { ...prevTasks };
+          Object.keys(newTasks).forEach(column => {
+            if (Array.isArray(newTasks[column])) {
+              newTasks[column] = newTasks[column].map(task => 
+                task._id === updatedTask._id ? response.task : task
+              );
+            } else if (newTasks[column].active && newTasks[column].done) {
+              newTasks[column].active = newTasks[column].active.map(task => 
+                task._id === updatedTask._id ? response.task : task
+              );
+              newTasks[column].done = newTasks[column].done.map(task => 
+                task._id === updatedTask._id ? response.task : task
+              );
+            }
+          });
+          return newTasks;
+        });
+        console.log('Task updated successfully:', response.task);
+      } else {
+        console.error('Failed to update task:', response.message);
+        // You might want to show an error message to the user here
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      // You might want to show an error message to the user here
+    }
+  };
+
   if (!board) {
     return <Typography>Loading...</Typography>;
   }
 
   return (
     <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-    <Box maxWidth="1600px" width="100%">
-      <Typography variant="h4" gutterBottom align="center">
-        Kanban Board
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => setOpenNewTaskDialog(true)}
-        sx={{ mb: 2 }}
-      >
-        Add Task
-      </Button>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Box display="flex" gap={2} justifyContent="center">
-          {columns.map(column => (
-            <Box key={column.id} width={300} flexShrink={0}>
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  p: 2, 
-                  height: 'calc(100vh - 200px)', 
-                  display: 'flex', 
-                  flexDirection: 'column'
-                }}
-              >
-                <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-                  {column.title}
-                </Typography>
-                {column.hasSubsections ? (
-                  <Box display="flex" flexGrow={1}>
-                    <Box width="calc(50% - 2px)" pr={1} display="flex" flexDirection="column">
-                      <Typography variant="subtitle2" align="center">Done</Typography>
-                      <Droppable droppableId={`${column.id}-done`}>
-                        {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
-                            {(tasks[column.id]?.done || []).map((task, index) => (
-                              <Draggable key={task._id} draggableId={task._id} index={index}>
-                                {(provided) => (
-                                  <Paper
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
-                                  >
-                                    {task.title}
-                                  </Paper>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+      <Box maxWidth="1600px" width="100%">
+        <Typography variant="h4" gutterBottom align="center">
+          {board.name}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenNewTaskDialog(true)}
+          sx={{ mb: 2 }}
+        >
+          Add Task
+        </Button>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Box display="flex" gap={2} justifyContent="center">
+            {columns.map(column => (
+              <Box key={column.id} width={300} flexShrink={0}>
+                <Paper 
+                  elevation={3} 
+                  sx={{ 
+                    p: 2, 
+                    height: 'calc(100vh - 200px)', 
+                    display: 'flex', 
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
+                    {column.title}
+                  </Typography>
+                  {column.hasSubsections ? (
+                    <Box display="flex" flexGrow={1}>
+                      <Box width="calc(50% - 2px)" pr={1} display="flex" flexDirection="column">
+                        <Typography variant="subtitle2" align="center">Done</Typography>
+                        <Droppable droppableId={`${column.id}-done`}>
+                          {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                              {(tasks[column.id]?.done || []).map((task, index) => (
+                                <Draggable key={task._id} draggableId={task._id} index={index}>
+                                  {(provided) => (
+                                    <Paper
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
+                                      onClick={() => handleTaskClick(task)}
+                                    >
+                                      {task.title}
+                                    </Paper>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </Box>
+                      <Divider orientation="vertical" flexItem sx={{ width: 2, bgcolor: 'grey.300' }} />
+                      <Box width="calc(50% - 2px)" pl={1} display="flex" flexDirection="column">
+                        <Typography variant="subtitle2" align="center">Active</Typography>
+                        <Droppable droppableId={`${column.id}-active`}>
+                          {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                              {(tasks[column.id]?.active || []).map((task, index) => (
+                                <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
+                                  {(provided) => (
+                                    <Paper
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
+                                      onClick={() => handleTaskClick(task)}
+                                    >
+                                      {task.title}
+                                    </Paper>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </Box>
                     </Box>
-                    <Divider orientation="vertical" flexItem sx={{ width: 2, bgcolor: 'grey.300' }} />
-                    <Box width="calc(50% - 2px)" pl={1} display="flex" flexDirection="column">
-                      <Typography variant="subtitle2" align="center">Active</Typography>
-                      <Droppable droppableId={`${column.id}-active`}>
-                        {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
-                            {(tasks[column.id]?.active || []).map((task, index) => (
-                              <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
-                                {(provided) => (
-                                  <Paper
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
-                                  >
-                                    {task.title}
-                                  </Paper>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </Box>
-                  </Box>
-                ) : (
-                  <Droppable droppableId={column.id}>
-                    {(provided) => (
-                      <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
-                        {(tasks[column.id] || []).map((task, index) => (
-                          <Draggable key={task._id} draggableId={task._id} index={index}>
-                            {(provided) => (
-                              <Paper
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
-                              >
-                                {task.title}
-                              </Paper>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                )}
-              </Paper>
-            </Box>
-           
-          ))}
-        
-        </Box>
-      </DragDropContext>
-    </Box>
+                  ) : (
+                    <Droppable droppableId={column.id}>
+                      {(provided) => (
+                        <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                          {(tasks[column.id] || []).map((task, index) => (
+                            <Draggable key={task._id} draggableId={task._id} index={index}>
+                              {(provided) => (
+                                <Paper
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
+                                  onClick={() => handleTaskClick(task)}
+                                >
+                                  {task.title}
+                                </Paper>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  )}
+                </Paper>
+              </Box>
+            ))}
+          </Box>
+        </DragDropContext>
+      </Box>
+      <TaskDetailsDialog
+        open={taskDetailsOpen}
+        onClose={() => setTaskDetailsOpen(false)}
+        task={selectedTask}
+        onUpdate={handleTaskUpdate}
+      />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
