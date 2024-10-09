@@ -1,4 +1,5 @@
 const Board = require('../models/Board');
+const mongoose = require('mongoose');
 
 exports.getBoards = async (req, res) => {
   try {
@@ -80,9 +81,10 @@ exports.createTask = async (req, res) => {
     }
 
     const newTask = {
+      _id: new mongoose.Types.ObjectId().toString(), // Explicitly set _id as a string
       title,
-      status: status || 'Backlog', // Default to 'Backlog' if no status is provided
-      color: color || '#' + Math.floor(Math.random()*16777215).toString(16) // Generate a random color if not provided
+      status: status || 'Backlog',
+      color: color || '#' + Math.floor(Math.random()*16777215).toString(16)
     };
 
     board.tasks.push(newTask);

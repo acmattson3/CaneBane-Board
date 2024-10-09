@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const shortid = require('shortid');
 
 const taskSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+    required: true
+  },
   title: {
     type: String,
     required: true,
@@ -9,13 +14,12 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    required: true,
-    enum: ['Backlog', 'To Do', 'Specification Active', 'Specification Done', 'Implementation Active', 'Implementation Done', 'Test', 'Done'],
+    enum: ['Backlog', 'Specification Active', 'Specification Done', 'Implementation Active', 'Implementation Done', 'Test', 'Done'],
     default: 'Backlog'
   },
   color: {
     type: String,
-    required: false  // Change this to false
+    required: false  
   },
   description: {
     type: String,

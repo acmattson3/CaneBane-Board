@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
@@ -55,13 +55,14 @@ function BoardView() {
     tasks.forEach(task => {
       console.log('Processing task:', task);
       const status = task.status.toLowerCase();
-      if (status.includes('specification') || status.includes('implementation')) {
-        const [mainStatus, subStatus] = status.split(' ');
-        if (subStatus === 'done') {
-          grouped[mainStatus].done.push(task);
-        } else {
-          grouped[mainStatus].active.push(task);
-        }
+      if (status === 'specification active') {
+        grouped['specification'].active.push(task);
+      } else if (status === 'specification done') {
+        grouped['specification'].done.push(task);
+      } else if (status === 'implementation active') {
+        grouped['implementation'].active.push(task);
+      } else if (status === 'implementation done') {
+        grouped['implementation'].done.push(task);
       } else if (grouped[status]) {
         grouped[status].push(task);
       } else {
@@ -91,6 +92,19 @@ function BoardView() {
     } catch (error) {
       console.error('Error creating task:', error);
     }
+  };
+
+  const mapStatusToBackend = (frontendStatus) => {
+    const statusMap = {
+      'backlog': 'Backlog',
+      'specification-active': 'Specification Active',
+      'specification-done': 'Specification Done',
+      'implementation-active': 'Implementation Active',
+      'implementation-done': 'Implementation Done',
+      'test': 'Test',
+      'done': 'Done'
+    };
+    return statusMap[frontendStatus] || frontendStatus;
   };
 
   const onDragEnd = async (result) => {
@@ -124,19 +138,23 @@ function BoardView() {
     if (destColumn.includes('-')) {
       const [colId, section] = destColumn.split('-');
       newTasks[colId][section].splice(destination.index, 0, movedTask);
-      movedTask.status = `${colId} ${section}`;
+      movedTask.status = mapStatusToBackend(`${colId}-${section}`);
     } else {
       newTasks[destColumn].splice(destination.index, 0, movedTask);
-      movedTask.status = destColumn;
+      movedTask.status = mapStatusToBackend(destColumn);
     }
 
     console.log('New tasks state:', newTasks);
+    console.log('Moved task:', movedTask);
     setTasks(newTasks);
 
     try {
+      console.log('Updating task with status:', movedTask.status);
       await updateTask(id, movedTask._id, { status: movedTask.status });
+      console.log('Task updated successfully:', movedTask);
     } catch (error) {
       console.error('Error updating task:', error);
+      // Revert the changes in the UI
       setTasks(tasks);
     }
   };
@@ -146,7 +164,8 @@ function BoardView() {
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <Box maxWidth="1600px" width="100%">
       <Typography variant="h4" gutterBottom align="center">
         Kanban Board
       </Typography>
@@ -160,9 +179,9 @@ function BoardView() {
         Add Task
       </Button>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Box display="flex" flexWrap="wrap" gap={2}>
+        <Box display="flex" gap={2} justifyContent="center">
           {columns.map(column => (
-            <Box key={column.id} flexGrow={1} flexBasis="calc(20% - 16px)" minWidth="200px">
+            <Box key={column.id} width={300} flexShrink={0}>
               <Paper 
                 elevation={3} 
                 sx={{ 
@@ -176,14 +195,14 @@ function BoardView() {
                   {column.title}
                 </Typography>
                 {column.hasSubsections ? (
-                  <Box display="flex" flexDirection="column" flexGrow={1}>
-                    <Box flexGrow={1}>
-                      <Typography variant="subtitle2">Active</Typography>
-                      <Droppable droppableId={`${column.id}-active`}>
+                  <Box display="flex" flexGrow={1}>
+                    <Box width="calc(50% - 2px)" pr={1} display="flex" flexDirection="column">
+                      <Typography variant="subtitle2" align="center">Done</Typography>
+                      <Droppable droppableId={`${column.id}-done`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ minHeight: '100px', overflowY: 'auto' }}>
-                            {(tasks[column.id]?.active || []).map((task, index) => (
-                              <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                            {(tasks[column.id]?.done || []).map((task, index) => (
+                              <Draggable key={task._id} draggableId={task._id} index={index}>
                                 {(provided) => (
                                   <Paper
                                     ref={provided.innerRef}
@@ -201,13 +220,14 @@ function BoardView() {
                         )}
                       </Droppable>
                     </Box>
-                    <Box flexGrow={1}>
-                      <Typography variant="subtitle2">Done</Typography>
-                      <Droppable droppableId={`${column.id}-done`}>
+                    <Divider orientation="vertical" flexItem sx={{ width: 2, bgcolor: 'grey.300' }} />
+                    <Box width="calc(50% - 2px)" pl={1} display="flex" flexDirection="column">
+                      <Typography variant="subtitle2" align="center">Active</Typography>
+                      <Droppable droppableId={`${column.id}-active`}>
                         {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ minHeight: '100px', overflowY: 'auto' }}>
-                            {(tasks[column.id]?.done || []).map((task, index) => (
-                              <Draggable key={task._id} draggableId={task._id} index={index}>
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                            {(tasks[column.id]?.active || []).map((task, index) => (
+                              <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
                                 {(provided) => (
                                   <Paper
                                     ref={provided.innerRef}
@@ -251,9 +271,12 @@ function BoardView() {
                 )}
               </Paper>
             </Box>
+           
           ))}
+        
         </Box>
       </DragDropContext>
+    </Box>
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
