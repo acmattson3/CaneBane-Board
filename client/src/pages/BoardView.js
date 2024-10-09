@@ -56,13 +56,31 @@ function BoardView() {
     }
 
     const newBoard = { ...board };
-    const task = newBoard.tasks.find(t => t._id === draggableId);
-    task.status = destination.droppableId;
+    const sourceTasks = newBoard.tasks.filter(task => task.status === source.droppableId);
+    const destinationTasks = newBoard.tasks.filter(task => task.status === destination.droppableId);
+
+    // Remove the task from the source position
+    const [movedTask] = sourceTasks.splice(source.index, 1);
+
+    // Insert the task into the destination position
+    destinationTasks.splice(destination.index, 0, movedTask);
+
+    // Update the status of the moved task if it has changed columns
+    if (source.droppableId !== destination.droppableId) {
+      movedTask.status = destination.droppableId;
+    }
+
+    // Reconstruct the tasks array
+    newBoard.tasks = [
+      ...newBoard.tasks.filter(task => task.status !== source.droppableId && task.status !== destination.droppableId),
+      ...sourceTasks,
+      ...destinationTasks
+    ];
 
     setBoard(newBoard);
 
     try {
-      await updateTask(board._id, task._id, { status: destination.droppableId });
+      await updateTask(board._id, movedTask._id, { status: movedTask.status });
     } catch (error) {
       console.error('Error updating task:', error);
       // Revert the change if the API call fails
@@ -115,7 +133,7 @@ function BoardView() {
                                 color: 'white',
                               }}
                             >
-                              <Typography variant="body2" gutterBottom>ID: {task._id}</Typography>
+                              {/* Removed task ID display */}
                               <Typography>{task.title}</Typography>
                             </Paper>
                           )}
