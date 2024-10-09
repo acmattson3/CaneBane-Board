@@ -271,7 +271,9 @@ function BoardView() {
                 )}
               </Paper>
             </Box>
+            </Box>
           ))}
+        </Box>
         </Box>
       </DragDropContext>
     </Box>
