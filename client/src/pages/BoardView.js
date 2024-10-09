@@ -164,7 +164,8 @@ function BoardView() {
   }
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <Box maxWidth="1600px" width="100%">
       <Typography variant="h4" gutterBottom align="center">
         Kanban Board
       </Typography>
@@ -178,9 +179,9 @@ function BoardView() {
         Add Task
       </Button>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Box display="flex" flexWrap="wrap" gap={2}>
+        <Box display="flex" gap={2} justifyContent="center">
           {columns.map(column => (
-            <Box key={column.id} flexGrow={1} flexBasis="calc(20% - 16px)" minWidth="300px">
+            <Box key={column.id} width={300} flexShrink={0}>
               <Paper 
                 elevation={3} 
                 sx={{ 
@@ -273,7 +274,7 @@ function BoardView() {
           ))}
         </Box>
       </DragDropContext>
-
+    </Box>
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
