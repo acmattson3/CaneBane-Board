@@ -1,153 +1,294 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Paper, Box, CircularProgress } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { getBoard, updateTask } from '../services/api';
+import AddIcon from '@mui/icons-material/Add';
+import { getBoard, createTask, updateTask } from '../services/api';
 
 const columns = [
-  { id: 'Backlog', title: 'Backlog' },
-  { id: 'To Do', title: 'To Do' },
-  { id: 'Specification Active', title: 'Specification Active' },
-  { id: 'Specification Done', title: 'Specification Done' },
-  { id: 'Implementation Active', title: 'Implementation Active' },
-  { id: 'Implementation Done', title: 'Implementation Done' },
-  { id: 'Test', title: 'Test' },
-  { id: 'Done', title: 'Done' }
+  { id: 'backlog', title: 'Backlog', hasSubsections: false },
+  { id: 'specification', title: 'Specification', hasSubsections: true },
+  { id: 'implementation', title: 'Implementation', hasSubsections: true },
+  { id: 'test', title: 'Test', hasSubsections: false },
+  { id: 'done', title: 'Done', hasSubsections: false }
 ];
+
+const getRandomColor = () => {
+  const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
 
 function BoardView() {
   const [board, setBoard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [tasks, setTasks] = useState({});
+  const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
   const { id } = useParams();
 
-  const fetchBoard = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getBoard(id);
-     // console.log('Fetched board data:', JSON.stringify(data, null, 2));
-      setBoard(data);
-    } catch (error) {
-      console.error('Error fetching board:', error);
-      setError('Failed to load board data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const fetchBoard = async () => {
+      try {
+        const data = await getBoard(id);
+        console.log('Fetched board data:', data);
+        setBoard(data);
+        const groupedTasks = groupTasksByStatus(data.tasks || []);
+        console.log('Grouped tasks:', groupedTasks);
+        setTasks(groupedTasks);
+      } catch (error) {
+        console.error('Error fetching board:', error);
+      }
+    };
+    fetchBoard();
   }, [id]);
 
-  useEffect(() => {
-    console.log('Fetching board...');
-    fetchBoard();
-  }, [fetchBoard]);
+  const groupTasksByStatus = (tasks) => {
+    console.log('Grouping tasks:', tasks);
+    const grouped = columns.reduce((acc, column) => {
+      if (column.hasSubsections) {
+        acc[column.id] = { active: [], done: [] };
+      } else {
+        acc[column.id] = [];
+      }
+      return acc;
+    }, {});
 
-  const onDragEnd = async (result) => {
-    const { destination, source, draggableId } = result;
+    tasks.forEach(task => {
+      console.log('Processing task:', task);
+      const status = task.status.toLowerCase();
+      if (status === 'specification active') {
+        grouped['specification'].active.push(task);
+      } else if (status === 'specification done') {
+        grouped['specification'].done.push(task);
+      } else if (status === 'implementation active') {
+        grouped['implementation'].active.push(task);
+      } else if (status === 'implementation done') {
+        grouped['implementation'].done.push(task);
+      } else if (grouped[status]) {
+        grouped[status].push(task);
+      } else {
+        grouped['backlog'].push(task);
+      }
+    });
 
-    if (!destination) {
-      return;
-    }
+    return grouped;
+  };
 
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    const newBoard = { ...board };
-    const sourceTasks = newBoard.tasks.filter(task => task.status === source.droppableId);
-    const destinationTasks = newBoard.tasks.filter(task => task.status === destination.droppableId);
-
-    // Remove the task from the source position
-    const [movedTask] = sourceTasks.splice(source.index, 1);
-
-    // Insert the task into the destination position
-    destinationTasks.splice(destination.index, 0, movedTask);
-
-    // Update the status of the moved task if it has changed columns
-    if (source.droppableId !== destination.droppableId) {
-      movedTask.status = destination.droppableId;
-    }
-
-    // Reconstruct the tasks array
-    newBoard.tasks = [
-      ...newBoard.tasks.filter(task => task.status !== source.droppableId && task.status !== destination.droppableId),
-      ...sourceTasks,
-      ...destinationTasks
-    ];
-
-    setBoard(newBoard);
-
+  const handleNewTask = async () => {
     try {
-      await updateTask(board._id, movedTask._id, { status: movedTask.status });
+      const color = getRandomColor();
+      console.log('Creating new task with color:', color);
+      const newTask = await createTask(id, { 
+        title: newTaskTitle, 
+        status: 'Backlog',
+        color: color
+      });
+      console.log('New task created:', newTask);
+      setTasks(prev => ({
+        ...prev,
+        backlog: [...(prev.backlog || []), newTask]
+      }));
+      setNewTaskTitle('');
+      setOpenNewTaskDialog(false);
     } catch (error) {
-      console.error('Error updating task:', error);
-      // Revert the change if the API call fails
-      fetchBoard();
+      console.error('Error creating task:', error);
     }
   };
 
-  if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
-  if (!board || !board.tasks) return <Typography>No tasks found. Try refreshing the page.</Typography>;
+  const mapStatusToBackend = (frontendStatus) => {
+    const statusMap = {
+      'backlog': 'Backlog',
+      'specification-active': 'Specification Active',
+      'specification-done': 'Specification Done',
+      'implementation-active': 'Implementation Active',
+      'implementation-done': 'Implementation Done',
+      'test': 'Test',
+      'done': 'Done'
+    };
+    return statusMap[frontendStatus] || frontendStatus;
+  };
 
-  const groupedTasks = columns.reduce((acc, column) => {
-    acc[column.id] = board.tasks.filter(tasks => tasks.status === column.id);
-    return acc;
-  }, {});
+  const onDragEnd = async (result) => {
+    console.log('Drag ended:', result);
+    const { source, destination, draggableId } = result;
+
+    if (!destination) return;
+
+    const sourceColumn = source.droppableId;
+    const destColumn = destination.droppableId;
+
+    let newTasks = { ...tasks };
+    let movedTask;
+
+    // Remove from source
+    if (sourceColumn.includes('-')) {
+      const [colId, section] = sourceColumn.split('-');
+      movedTask = newTasks[colId][section].find(task => task._id === draggableId);
+      newTasks[colId][section] = newTasks[colId][section].filter(task => task._id !== draggableId);
+    } else {
+      movedTask = newTasks[sourceColumn].find(task => task._id === draggableId);
+      newTasks[sourceColumn] = newTasks[sourceColumn].filter(task => task._id !== draggableId);
+    }
+
+    if (!movedTask) {
+      console.error('Task not found:', draggableId);
+      return;
+    }
+
+    // Add to destination
+    if (destColumn.includes('-')) {
+      const [colId, section] = destColumn.split('-');
+      newTasks[colId][section].splice(destination.index, 0, movedTask);
+      movedTask.status = mapStatusToBackend(`${colId}-${section}`);
+    } else {
+      newTasks[destColumn].splice(destination.index, 0, movedTask);
+      movedTask.status = mapStatusToBackend(destColumn);
+    }
+
+    console.log('New tasks state:', newTasks);
+    console.log('Moved task:', movedTask);
+    setTasks(newTasks);
+
+    try {
+      console.log('Updating task with status:', movedTask.status);
+      await updateTask(id, movedTask._id, { status: movedTask.status });
+      console.log('Task updated successfully:', movedTask);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      // Revert the changes in the UI
+      setTasks(tasks);
+    }
+  };
+
+  if (!board) {
+    return <Typography>Loading...</Typography>;
+  }
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>Kanban Board: {board.name}</Typography>
+    <Container maxWidth="xl">
+      <Typography variant="h4" gutterBottom align="center">
+        Kanban Board
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<AddIcon />}
+        onClick={() => setOpenNewTaskDialog(true)}
+        sx={{ mb: 2 }}
+      >
+        Add Task
+      </Button>
       <DragDropContext onDragEnd={onDragEnd}>
         <Box display="flex" flexWrap="wrap" gap={2}>
           {columns.map(column => (
-            <Box key={column.id} width={300} flexShrink={0}>
-              <Paper sx={{ p: 2, minHeight: '300px' }}>
-                <Typography variant="h6">{column.title}</Typography>
-                <Droppable droppableId={column.id}>
-                  {(provided) => (
-                    <Box
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      sx={{
-                        background: 'lightgrey',
-                        padding: 1,
-                        minHeight: 500,
-                      }}
-                    >
-                      {groupedTasks[column.id]?.map((task, index) => (
-                        <Draggable key={task._id} draggableId={task._id} index={index}>
-                          {(provided) => (
-                            <Paper
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              sx={{
-                                userSelect: 'none',
-                                padding: 2,
-                                margin: '0 0 8px 0',
-                                minHeight: '50px',
-                                backgroundColor: '#456C86',
-                                color: 'white',
-                              }}
-                            >
-                              {/* Removed task ID display */}
-                              <Typography>{task.title}</Typography>
-                            </Paper>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
+            <Box key={column.id} flexGrow={1} flexBasis="calc(20% - 16px)" minWidth="300px">
+              <Paper 
+                elevation={3} 
+                sx={{ 
+                  p: 2, 
+                  height: 'calc(100vh - 200px)', 
+                  display: 'flex', 
+                  flexDirection: 'column'
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
+                  {column.title}
+                </Typography>
+                {column.hasSubsections ? (
+                  <Box display="flex" flexGrow={1}>
+                    <Box width="50%" pr={1}>
+                      <Typography variant="subtitle2" align="center">Done</Typography>
+                      <Droppable droppableId={`${column.id}-done`}>
+                        {(provided) => (
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                            {(tasks[column.id]?.done || []).map((task, index) => (
+                              <Draggable key={task._id} draggableId={task._id} index={index}>
+                                {(provided) => (
+                                  <Paper
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
+                                  >
+                                    {task.title}
+                                  </Paper>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
                     </Box>
-                  )}
-                </Droppable>
+                    <Box width="50%" pl={1}>
+                      <Typography variant="subtitle2" align="center">Active</Typography>
+                      <Droppable droppableId={`${column.id}-active`}>
+                        {(provided) => (
+                          <div {...provided.droppableProps} ref={provided.innerRef} style={{ height: '100%', overflowY: 'auto' }}>
+                            {(tasks[column.id]?.active || []).map((task, index) => (
+                              <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
+                                {(provided) => (
+                                  <Paper
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
+                                  >
+                                    {task.title}
+                                  </Paper>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Droppable droppableId={column.id}>
+                    {(provided) => (
+                      <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                        {(tasks[column.id] || []).map((task, index) => (
+                          <Draggable key={task._id} draggableId={task._id} index={index}>
+                            {(provided) => (
+                              <Paper
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0' }}
+                              >
+                                {task.title}
+                              </Paper>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                )}
               </Paper>
             </Box>
           ))}
         </Box>
       </DragDropContext>
+      <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
+        <DialogTitle>Create New Task</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Task Title"
+            fullWidth
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenNewTaskDialog(false)}>Cancel</Button>
+          <Button onClick={handleNewTask}>Create</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

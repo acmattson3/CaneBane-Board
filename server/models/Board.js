@@ -14,8 +14,7 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    required: true,
-    enum: ['Backlog', 'To Do', 'Specification Active', 'Specification Done', 'Implementation Active', 'Implementation Done', 'Test', 'Done'],
+    enum: ['Backlog', 'Specification Active', 'Specification Done', 'Implementation Active', 'Implementation Done', 'Test', 'Done'],
     default: 'Backlog'
   },
   color: {
