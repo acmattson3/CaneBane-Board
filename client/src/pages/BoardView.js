@@ -26,7 +26,7 @@ function BoardView() {
       setLoading(true);
       setError(null);
       const data = await getBoard(id);
-      console.log('Fetched board data:', JSON.stringify(data, null, 2));
+     // console.log('Fetched board data:', JSON.stringify(data, null, 2));
       setBoard(data);
     } catch (error) {
       console.error('Error fetching board:', error);
