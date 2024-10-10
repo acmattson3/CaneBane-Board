@@ -232,7 +232,8 @@ function BoardView() {
               minWidth: 'fit-content',
               height: '100%',
               px: 2,
-              margin: '0 auto'
+              margin: '0 auto',
+              width: 'max-content' // Add this line
             }}
           >
             {columns.map(column => (
@@ -241,7 +242,7 @@ function BoardView() {
                   elevation={3} 
                   sx={{ 
                     p: 2, 
-                    height: 'calc(100vh - 150px)', // Adjusted to account for top padding
+                    height: 'calc(100vh - 150px)',
                     display: 'flex', 
                     flexDirection: 'column'
                   }}
