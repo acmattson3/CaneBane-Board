@@ -159,3 +159,4 @@ document.querySelectorAll('.submenu li a').forEach(function(option) {
         toggleSubMenu(); // Close the submenu after selection
     });
 });
+
