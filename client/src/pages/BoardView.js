@@ -279,11 +279,35 @@ function BoardView() {
       </Box>
       <Button
         variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
         onClick={() => setOpenNewTaskDialog(true)}
-        sx={{ mb: 2, alignSelf: 'flex-start', ml: 2 }}
+        sx={{
+          mb: 2,
+          alignSelf: 'flex-start',
+          ml: 2,
+          backgroundColor: '#FFFF88',
+          color: '#000',
+          boxShadow: '2px 2px 5px rgba(0,0,0,0.3)',
+          transform: 'rotate(-2deg)',
+          '&:hover': {
+            backgroundColor: '#FFFF99',
+            transform: 'rotate(0deg) scale(1.05)',
+          },
+          transition: 'all 0.3s ease',
+          width: '100px',
+          height: '100px',
+          borderRadius: '2px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          lineHeight: 1.2,
+          fontSize: '0.9rem',
+          fontWeight: 'bold',
+          textTransform: 'none',
+        }}
       >
+        <AddIcon sx={{ fontSize: '2rem', mb: 1 }} />
         Add Task
       </Button>
       <Box sx={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
