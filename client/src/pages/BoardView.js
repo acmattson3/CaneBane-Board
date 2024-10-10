@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask } from '../services/api';
@@ -26,6 +27,7 @@ function BoardView() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
+  const [showCodeTooltip, setShowCodeTooltip] = useState(false);
   const { id } = useParams();
 
   useEffect(() => {
@@ -197,11 +199,17 @@ function BoardView() {
         console.log('Task updated successfully:', response.task);
       } else {
         console.error('Failed to update task:', response.message);
-        // You might want to show an error message to the user here
       }
     } catch (error) {
       console.error('Error updating task:', error);
-      // You might want to show an error message to the user here
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (board && board.code) {
+      navigator.clipboard.writeText(board.code);
+      setShowCodeTooltip(true);
+      setTimeout(() => setShowCodeTooltip(false), 2000);
     }
   };
 
@@ -211,9 +219,19 @@ function BoardView() {
 
   return (
     <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Typography variant="h4" gutterBottom align="center">
-        {board.name}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          {board.name}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ mr: 1 }}>Board Code: {board.code}</Typography>
+          <Tooltip title={showCodeTooltip ? "Copied!" : "Copy Code"} arrow>
+            <IconButton onClick={handleCopyCode}>
+              <ContentCopyIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
       <Button
         variant="contained"
         color="primary"
@@ -233,7 +251,7 @@ function BoardView() {
               height: '100%',
               px: 2,
               margin: '0 auto',
-              width: 'max-content' // Add this line
+              width: 'max-content'
             }}
           >
             {columns.map(column => (
@@ -341,7 +359,7 @@ function BoardView() {
         onUpdate={handleTaskUpdate}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
-        <DialogTitle>Create New Task</DialogTitle>
+      <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus

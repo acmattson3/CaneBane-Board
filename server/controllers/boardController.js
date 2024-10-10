@@ -81,7 +81,7 @@ exports.createTask = async (req, res) => {
     }
 
     const newTask = {
-      _id: new mongoose.Types.ObjectId().toString(), // Explicitly set _id as a string
+      _id: new mongoose.Types.ObjectId().toString(),
       title,
       status: status || 'Backlog',
       color: color || '#' + Math.floor(Math.random()*16777215).toString(16)
@@ -126,5 +126,28 @@ exports.updateTask = async (req, res) => {
   } catch (error) {
     console.error('Error updating task:', error);
     res.status(500).json({ message: 'Error updating task', error: error.message });
+  }
+};
+
+exports.joinBoard = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const board = await Board.findOne({ code });
+
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+
+    if (board.members.includes(req.user.id)) {
+      return res.status(400).json({ message: 'You are already a member of this board' });
+    }
+
+    board.members.push(req.user.id);
+    await board.save();
+
+    res.json(board);
+  } catch (error) {
+    console.error('Error joining board:', error);
+    res.status(500).json({ message: 'Error joining board', error: error.message });
   }
 };
