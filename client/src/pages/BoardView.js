@@ -401,31 +401,6 @@ function BoardView() {
                   {column.hasSubsections ? (
                     <Box display="flex" flexGrow={1}>
                       <Box width="50%" pr={1} display="flex" flexDirection="column">
-                        <Typography variant="subtitle2" align="center">Done</Typography>
-                        <Droppable droppableId={`${column.id}-done`}>
-                          {(provided) => (
-                            <div 
-                              {...provided.droppableProps} 
-                              ref={provided.innerRef} 
-                              style={{ 
-                                flexGrow: 1, 
-                                overflowY: 'auto', 
-                                minHeight: '200px',
-                                width: '100%'
-                              }}
-                            >
-                              {(tasks[column.id]?.done || []).map((task, index) => (
-                                <Draggable key={task._id} draggableId={task._id} index={index}>
-                                  {(provided) => renderTask(task, provided)}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </Box>
-                      <Divider orientation="vertical" flexItem />
-                      <Box width="50%" pl={1} display="flex" flexDirection="column">
                         <Typography variant="subtitle2" align="center">Active</Typography>
                         <Droppable droppableId={`${column.id}-active`}>
                           {(provided) => (
@@ -441,6 +416,31 @@ function BoardView() {
                             >
                               {(tasks[column.id]?.active || []).map((task, index) => (
                                 <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
+                                  {(provided) => renderTask(task, provided)}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </Box>
+                      <Divider orientation="vertical" flexItem />
+                      <Box width="50%" pl={1} display="flex" flexDirection="column">
+                        <Typography variant="subtitle2" align="center">Done</Typography>
+                        <Droppable droppableId={`${column.id}-done`}>
+                          {(provided) => (
+                            <div 
+                              {...provided.droppableProps} 
+                              ref={provided.innerRef} 
+                              style={{ 
+                                flexGrow: 1, 
+                                overflowY: 'auto', 
+                                minHeight: '200px',
+                                width: '100%'
+                              }}
+                            >
+                              {(tasks[column.id]?.done || []).map((task, index) => (
+                                <Draggable key={task._id} draggableId={task._id} index={index}>
                                   {(provided) => renderTask(task, provided)}
                                 </Draggable>
                               ))}
