@@ -13,47 +13,57 @@ exports.getBoards = async (req, res) => {
 
 exports.getBoard = async (req, res) => {
   try {
-    const board = await Board.findOne({ _id: req.params.id, $or: [{ owner: req.user.id }, { members: req.user.id }] });
+    const board = await Board.findById(req.params.id);
     if (!board) {
-      return res.status(404).json({ message: 'Board not found or you do not have permission to view it' });
+      return res.status(404).json({ message: 'Board not found' });
     }
+    console.log('Retrieved board:', JSON.stringify(board, null, 2));
     res.json(board);
   } catch (error) {
-    console.error('Error fetching board:', error);
-    res.status(500).json({ message: 'Error fetching board', error: error.message });
+    console.error('Error retrieving board:', error);
+    res.status(500).json({ message: 'Error retrieving board' });
   }
 };
 
 exports.createBoard = async (req, res) => {
   try {
-    const { name } = req.body;
-    const newBoard = new Board({
+    const { name, owner, columns } = req.body;
+    const board = new Board({
       name,
-      owner: req.user.id,
-      members: [req.user.id]
+      owner,
+      columns: columns.map(column => ({
+        ...column,
+        wipLimit: column.wipLimit || null,
+        doneRule: column.doneRule || ''
+      }))
     });
-    const savedBoard = await newBoard.save();
-    res.status(201).json(savedBoard);
+    await board.save();
+    res.status(201).json(board);
   } catch (error) {
-    console.error('Error creating board:', error);
-    res.status(500).json({ message: 'Error creating board', error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
 exports.updateBoard = async (req, res) => {
   try {
-    const board = await Board.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.id },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const { boardId } = req.params;
+    const { columns } = req.body;
+
+    const board = await Board.findById(boardId);
     if (!board) {
-      return res.status(404).json({ message: 'Board not found or you do not have permission to update' });
+      return res.status(404).json({ error: 'Board not found' });
     }
-    res.json(board);
+
+    board.columns = columns.map(column => ({
+      ...column,
+      wipLimit: column.wipLimit || null,
+      doneRule: column.doneRule || ''
+    }));
+
+    await board.save();
+    res.status(200).json(board);
   } catch (error) {
-    console.error('Error updating board:', error);
-    res.status(500).json({ message: 'Error updating board', error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -149,5 +159,39 @@ exports.joinBoard = async (req, res) => {
   } catch (error) {
     console.error('Error joining board:', error);
     res.status(500).json({ message: 'Error joining board', error: error.message });
+  }
+};
+
+exports.updateColumn = async (req, res) => {
+  console.log('updateColumn called with params:', req.params);
+  console.log('updateColumn request body:', req.body);
+  try {
+    const { boardId, columnId } = req.params;
+    const { wipLimit, doneRule } = req.body;
+
+    console.log(`Attempting to find board with id: ${boardId}`);
+    const board = await Board.findById(boardId);
+    if (!board) {
+      console.log(`Board not found with id: ${boardId}`);
+      return res.status(404).json({ error: 'Board not found' });
+    }
+
+    console.log(`Attempting to find column with id: ${columnId}`);
+    const columnIndex = board.columns.findIndex(col => col.id === columnId);
+    if (columnIndex === -1) {
+      console.log(`Column not found with id: ${columnId}`);
+      return res.status(404).json({ error: 'Column not found' });
+    }
+
+    board.columns[columnIndex].wipLimit = wipLimit;
+    board.columns[columnIndex].doneRule = doneRule;
+
+    console.log('Saving updated board');
+    await board.save();
+    console.log('Board saved successfully');
+    res.status(200).json(board.columns[columnIndex]);
+  } catch (error) {
+    console.error('Error in updateColumn:', error);
+    res.status(400).json({ error: error.message });
   }
 };

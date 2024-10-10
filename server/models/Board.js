@@ -41,6 +41,14 @@ const taskSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+const columnSchema = new mongoose.Schema({
+  id: String,
+  title: String,
+  hasSubsections: Boolean,
+  wipLimit: Number,
+  doneRule: String
+});
+
 const boardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -57,6 +65,7 @@ const boardSchema = new mongoose.Schema({
     ref: 'User'
   }],
   tasks: [taskSchema],
+  columns: [columnSchema], // Add this line
   code: {
     type: String,
     unique: true,
