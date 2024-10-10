@@ -210,29 +210,38 @@ function BoardView() {
   }
 
   return (
-    <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Box maxWidth="1600px" width="100%">
-        <Typography variant="h4" gutterBottom align="center">
-          {board.name}
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenNewTaskDialog(true)}
-          sx={{ mb: 2 }}
-        >
-          Add Task
-        </Button>
+    <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Typography variant="h4" gutterBottom align="center">
+        {board.name}
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<AddIcon />}
+        onClick={() => setOpenNewTaskDialog(true)}
+        sx={{ mb: 2, alignSelf: 'flex-start', ml: 2 }}
+      >
+        Add Task
+      </Button>
+      <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', pt: 1 }}>
         <DragDropContext onDragEnd={onDragEnd}>
-          <Box display="flex" gap={2} justifyContent="center">
+          <Box 
+            display="flex" 
+            gap={2} 
+            sx={{ 
+              minWidth: 'fit-content',
+              height: '100%',
+              px: 2,
+              margin: '0 auto'
+            }}
+          >
             {columns.map(column => (
               <Box key={column.id} width={300} flexShrink={0}>
                 <Paper 
                   elevation={3} 
                   sx={{ 
                     p: 2, 
-                    height: 'calc(100vh - 200px)', 
+                    height: 'calc(100vh - 150px)', // Adjusted to account for top padding
                     display: 'flex', 
                     flexDirection: 'column'
                   }}
