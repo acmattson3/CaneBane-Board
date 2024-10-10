@@ -226,14 +226,17 @@ function BoardView() {
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
-        transition: 'box-shadow 0.3s ease-in-out',
+        transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
         '&:hover': {
           boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+          transform: 'translateY(-2px) rotate(1deg)',
         },
         width: 'calc(100% - 8px)', // Subtract padding to ensure it fits within the column
         maxWidth: '100%',
         wordBreak: 'break-word',
         overflowWrap: 'break-word',
+        borderRadius: '2px',
+        transform: 'rotate(-1deg)',
       }}
       onClick={() => handleTaskClick(task)}
     >
@@ -264,24 +267,26 @@ function BoardView() {
 
   return (
     <Container maxWidth={false} sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 2, pt: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          {board.name}
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>Board Code: {board.code}</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', mb: 1, px: 2, pt: .5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: .1 }}>
+          <Typography variant="body2" sx={{ mr: 1, pt: 1}}>Board Code: {board.code}</Typography>
           <Tooltip title={showCodeTooltip ? "Copied!" : "Copy Code"} arrow>
             <IconButton onClick={handleCopyCode}>
               <ContentCopyIcon />
             </IconButton>
           </Tooltip>
         </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Typography variant="h4" align="center">
+            {board.name}
+          </Typography>
+        </Box>
       </Box>
       <Button
         variant="contained"
         onClick={() => setOpenNewTaskDialog(true)}
         sx={{
-          mb: 2,
+          mb: 1, // Reduced mb
           alignSelf: 'flex-start',
           ml: 2,
           backgroundColor: '#FFFF88',
@@ -318,8 +323,9 @@ function BoardView() {
               minHeight: 'min-content',
               overflowX: 'auto',
               pb: 2,
-              pt: 1, // Add top padding here
-              justifyContent: 'center',
+              pt: 1, // Removed top padding
+              
+              justifyContent: 'flex-start',
               margin: '0 auto',
               maxWidth: '100%',
             }}
@@ -342,7 +348,7 @@ function BoardView() {
                     display: 'flex', 
                     flexDirection: 'column',
                     height: '100%',
-                    minHeight: 'calc(100vh - 230px)', // Adjusted to account for added top padding
+                    minHeight: 'calc(100vh - 200px)',
                   }}
                 >
                   <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
