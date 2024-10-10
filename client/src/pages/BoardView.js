@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -32,6 +32,11 @@ function BoardView() {
     { id: 'done', title: 'Done', hasSubsections: false }
   ]);
   const { id } = useParams();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -186,8 +191,12 @@ function BoardView() {
 
         // If the task is moving from a different column and the destination column is at or over the WIP limit, prevent the move
         if (sourceColumnId !== destColumnId && destTasks.length >= destColumn.wipLimit) {
-          console.log('Cannot move task: WIP limit reached');
-          return; // Exit the function without updating the task status
+          setSnackbar({
+            open: true,
+            message: `Cannot move task: WIP limit reached for ${destColumn.title}`,
+            severity: 'warning'
+          });
+          return;
         }
       }
 
@@ -599,6 +608,20 @@ function BoardView() {
         column={selectedColumn}
         onSave={handleColumnSettingsSave}
       />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
