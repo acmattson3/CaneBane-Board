@@ -57,3 +57,13 @@ export const updateTask = async (boardId, taskId, updatedData) => {
     return { success: false, message: error.response?.data?.message || 'Failed to update task' };
   }
 };
+
+export const updateColumn = async (boardId, columnId, updatedData) => {
+  try {
+    const response = await apiClient.put(`/boards/${boardId}/columns/${columnId}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating column:', error);
+    throw error;
+  }
+};

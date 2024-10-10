@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
-import { getBoard, createTask, updateTask } from '../services/api';
+import { getBoard, createTask, updateTask, updateColumn } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
+import ColumnSettingsDialog from '../components/ColumnSettings';
 
 const columns = [
   { id: 'backlog', title: 'Backlog', hasSubsections: false },
@@ -28,6 +30,8 @@ function BoardView() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
   const [showCodeTooltip, setShowCodeTooltip] = useState(false);
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState(null);
   const { id } = useParams();
 
   useEffect(() => {
@@ -45,6 +49,34 @@ function BoardView() {
     };
     fetchBoard();
   }, [id]);
+
+  const handleColumnSettingsClick = (column) => {
+    setSelectedColumn(column);
+    setColumnSettingsOpen(true);
+  };
+
+  const handleColumnSettingsSave = async (columnId, updatedSettings) => {
+    try {
+      await updateColumn(board._id, columnId, updatedSettings);
+      const updatedColumns = board.columns.map(col => 
+        col.id === columnId ? { ...col, ...updatedSettings } : col
+      );
+      setBoard({ ...board, columns: updatedColumns });
+    } catch (error) {
+      console.error('Error updating column settings:', error);
+    }
+  };
+
+  const isWipLimitExceeded = (columnId) => {
+    const column = board.columns.find(col => col.id === columnId);
+    if (!column || !column.wipLimit) return false;
+
+    const taskCount = column.hasSubsections
+      ? (tasks[columnId]?.active?.length || 0) + (tasks[columnId]?.done?.length || 0)
+      : (tasks[columnId]?.length || 0);
+
+    return taskCount >= column.wipLimit;
+  };
 
   const groupTasksByStatus = (tasks) => {
     console.log('Grouping tasks:', tasks);
@@ -212,6 +244,7 @@ function BoardView() {
       setTimeout(() => setShowCodeTooltip(false), 2000);
     }
   };
+
   const renderTask = (task, provided) => (
     <Paper
       ref={provided.innerRef}
@@ -323,8 +356,7 @@ function BoardView() {
               minHeight: 'min-content',
               overflowX: 'auto',
               pb: 2,
-              pt: 1, // Removed top padding
-              
+              pt: 1,
               justifyContent: 'flex-start',
               margin: '0 auto',
               maxWidth: '100%',
@@ -351,9 +383,21 @@ function BoardView() {
                     minHeight: 'calc(100vh - 200px)',
                   }}
                 >
-                  <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-                    {column.title}
-                  </Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Typography variant="h6" sx={{ textAlign: 'center' }}>
+                      {column.title}
+                    </Typography>
+                    <Tooltip title="Column Settings">
+                      <IconButton onClick={() => handleColumnSettingsClick(column)} size="small">
+                        <HelpOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  {column.wipLimit && (
+                    <Typography variant="caption" sx={{ mb: 1 }}>
+                      WIP Limit: {isWipLimitExceeded(column.id) ? 'Exceeded' : `${tasks[column.id]?.length || 0}/${column.wipLimit}`}
+                    </Typography>
+                  )}
                   {column.hasSubsections ? (
                     <Box display="flex" flexGrow={1}>
                       <Box width="50%" pr={1} display="flex" flexDirection="column">
@@ -367,7 +411,7 @@ function BoardView() {
                                 flexGrow: 1, 
                                 overflowY: 'auto', 
                                 minHeight: '200px',
-                                width: '100%' // Add this line
+                                width: '100%'
                               }}
                             >
                               {(tasks[column.id]?.done || []).map((task, index) => (
@@ -392,7 +436,7 @@ function BoardView() {
                                 flexGrow: 1, 
                                 overflowY: 'auto', 
                                 minHeight: '200px',
-                                width: '100%' // Add this line
+                                width: '100%'
                               }}
                             >
                               {(tasks[column.id]?.active || []).map((task, index) => (
@@ -416,7 +460,7 @@ function BoardView() {
                             flexGrow: 1, 
                             overflowY: 'auto', 
                             minHeight: '200px',
-                            width: '100%' // Add this line
+                            width: '100%'
                           }}
                         >
                           {(tasks[column.id] || []).map((task, index) => (
@@ -458,6 +502,12 @@ function BoardView() {
           <Button onClick={handleNewTask}>Create</Button>
         </DialogActions>
       </Dialog>
+      <ColumnSettingsDialog
+        open={columnSettingsOpen}
+        onClose={() => setColumnSettingsOpen(false)}
+        column={selectedColumn}
+        onSave={handleColumnSettingsSave}
+      />
     </Container>
   );
 }
