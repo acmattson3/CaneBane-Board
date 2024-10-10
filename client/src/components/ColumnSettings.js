@@ -8,7 +8,7 @@ function ColumnSettings({ open, onClose, column, onSave }) {
   useEffect(() => {
     if (column) {
       setDoneRule(column.doneRule || '');
-      setWipLimit(column.wipLimit || '');
+      setWipLimit(column.wipLimit ? column.wipLimit.toString() : '');
     }
   }, [column]);
 

@@ -38,9 +38,15 @@ export const joinBoard = async (code) => {
   }
 };
 
-export const getBoard = async (id) => {
-  const response = await apiClient.get(`/boards/${id}`);
-  return response.data;
+export const getBoard = async (boardId) => {
+  try {
+    const response = await apiClient.get(`/boards/${boardId}`);
+    console.log('API response for getBoard:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching board:', error);
+    throw error;
+  }
 };
 
 export const createTask = async (boardId, taskData) => {
@@ -59,11 +65,14 @@ export const updateTask = async (boardId, taskId, updatedData) => {
 };
 
 export const updateColumn = async (boardId, columnId, updatedData) => {
+  console.log(`Updating column: boardId=${boardId}, columnId=${columnId}`);
+  console.log('Updated data:', updatedData);
   try {
     const response = await apiClient.put(`/boards/${boardId}/columns/${columnId}`, updatedData);
+    console.log('Update column response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error updating column:', error);
+    console.error('Error updating column:', error.response || error);
     throw error;
   }
 };

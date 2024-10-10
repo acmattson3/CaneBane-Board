@@ -9,14 +9,6 @@ import { getBoard, createTask, updateTask, updateColumn } from '../services/api'
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 
-const columns = [
-  { id: 'backlog', title: 'Backlog', hasSubsections: false },
-  { id: 'specification', title: 'Specification', hasSubsections: true },
-  { id: 'implementation', title: 'Implementation', hasSubsections: true },
-  { id: 'test', title: 'Test', hasSubsections: false },
-  { id: 'done', title: 'Done', hasSubsections: false }
-];
-
 const getRandomColor = () => {
   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
   return colors[Math.floor(Math.random() * colors.length)];
@@ -32,6 +24,13 @@ function BoardView() {
   const [showCodeTooltip, setShowCodeTooltip] = useState(false);
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
+  const [columns, setColumns] = useState([
+    { id: 'backlog', title: 'Backlog', hasSubsections: false },
+    { id: 'specification', title: 'Specification', hasSubsections: true },
+    { id: 'implementation', title: 'Implementation', hasSubsections: true },
+    { id: 'test', title: 'Test', hasSubsections: false },
+    { id: 'done', title: 'Done', hasSubsections: false }
+  ]);
   const { id } = useParams();
 
   useEffect(() => {
@@ -43,6 +42,13 @@ function BoardView() {
         const groupedTasks = groupTasksByStatus(data.tasks || []);
         console.log('Grouped tasks:', groupedTasks);
         setTasks(groupedTasks);
+        
+        // Merge fetched column data with initial column structure
+        const updatedColumns = columns.map(col => {
+          const fetchedCol = data.columns.find(c => c.id === col.id);
+          return fetchedCol ? { ...col, ...fetchedCol } : col;
+        });
+        setColumns(updatedColumns);
       } catch (error) {
         console.error('Error fetching board:', error);
       }
@@ -58,17 +64,24 @@ function BoardView() {
   const handleColumnSettingsSave = async (columnId, updatedSettings) => {
     try {
       await updateColumn(board._id, columnId, updatedSettings);
-      const updatedColumns = board.columns.map(col => 
-        col.id === columnId ? { ...col, ...updatedSettings } : col
+      setColumns(prevColumns => 
+        prevColumns.map(col =>
+          col.id === columnId ? { ...col, ...updatedSettings } : col
+        )
       );
-      setBoard({ ...board, columns: updatedColumns });
+      setBoard(prevBoard => ({
+        ...prevBoard,
+        columns: prevBoard.columns.map(col =>
+          col.id === columnId ? { ...col, ...updatedSettings } : col
+        )
+      }));
     } catch (error) {
       console.error('Error updating column settings:', error);
     }
   };
 
   const isWipLimitExceeded = (columnId) => {
-    const column = board.columns.find(col => col.id === columnId);
+    const column = columns.find(col => col.id === columnId);
     if (!column || !column.wipLimit) return false;
 
     const taskCount = column.hasSubsections
@@ -396,6 +409,11 @@ function BoardView() {
                   {column.wipLimit && (
                     <Typography variant="caption" sx={{ mb: 1 }}>
                       WIP Limit: {isWipLimitExceeded(column.id) ? 'Exceeded' : `${tasks[column.id]?.length || 0}/${column.wipLimit}`}
+                    </Typography>
+                  )}
+                  {column.doneRule && (
+                    <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
+                      Done Rule: {column.doneRule}
                     </Typography>
                   )}
                   {column.hasSubsections ? (
