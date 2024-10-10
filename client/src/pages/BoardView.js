@@ -263,8 +263,8 @@ function BoardView() {
   }
 
   return (
-    <Container maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Container maxWidth={false} sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 2, pt: 2 }}>
         <Typography variant="h4" gutterBottom>
           {board.name}
         </Typography>
@@ -282,30 +282,43 @@ function BoardView() {
         color="primary"
         startIcon={<AddIcon />}
         onClick={() => setOpenNewTaskDialog(true)}
-        sx={{ mb: 2, alignSelf: 'flex-start' }}
+        sx={{ mb: 2, alignSelf: 'flex-start', ml: 2 }}
       >
         Add Task
       </Button>
-      <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', pt: 1 }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         <DragDropContext onDragEnd={onDragEnd}>
           <Box 
             display="flex" 
-            gap={2} 
             sx={{ 
-              minWidth: 'fit-content',
-              height: '100%',
-              px: 2,
+              minHeight: 'min-content',
+              overflowX: 'auto',
+              pb: 2,
+              pt: 1, // Add top padding here
+              justifyContent: 'center',
+              margin: '0 auto',
+              maxWidth: '100%',
             }}
           >
             {columns.map(column => (
-              <Box key={column.id} width={300} minWidth={300} flexShrink={0}>
+              <Box 
+                key={column.id} 
+                width={300} 
+                sx={{ 
+                  flexShrink: 0, 
+                  px: 1, 
+                  height: 'fit-content',
+                  minWidth: 300
+                }}
+              >
                 <Paper 
                   elevation={3} 
                   sx={{ 
                     p: 2, 
-                    height: 'calc(100vh - 200px)',
                     display: 'flex', 
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    height: '100%',
+                    minHeight: 'calc(100vh - 230px)', // Adjusted to account for added top padding
                   }}
                 >
                   <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
@@ -313,11 +326,20 @@ function BoardView() {
                   </Typography>
                   {column.hasSubsections ? (
                     <Box display="flex" flexGrow={1}>
-                      <Box width="calc(50% - 2px)" pr={1} display="flex" flexDirection="column">
+                      <Box width="50%" pr={1} display="flex" flexDirection="column">
                         <Typography variant="subtitle2" align="center">Done</Typography>
                         <Droppable droppableId={`${column.id}-done`}>
                           {(provided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                            <div 
+                              {...provided.droppableProps} 
+                              ref={provided.innerRef} 
+                              style={{ 
+                                flexGrow: 1, 
+                                overflowY: 'auto', 
+                                minHeight: '200px',
+                                width: '100%' // Add this line
+                              }}
+                            >
                               {(tasks[column.id]?.done || []).map((task, index) => (
                                 <Draggable key={task._id} draggableId={task._id} index={index}>
                                   {(provided) => renderTask(task, provided)}
@@ -328,12 +350,21 @@ function BoardView() {
                           )}
                         </Droppable>
                       </Box>
-                      <Divider orientation="vertical" flexItem sx={{ width: 2, bgcolor: 'grey.300' }} />
-                      <Box width="calc(50% - 2px)" pl={1} display="flex" flexDirection="column">
+                      <Divider orientation="vertical" flexItem />
+                      <Box width="50%" pl={1} display="flex" flexDirection="column">
                         <Typography variant="subtitle2" align="center">Active</Typography>
                         <Droppable droppableId={`${column.id}-active`}>
                           {(provided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                            <div 
+                              {...provided.droppableProps} 
+                              ref={provided.innerRef} 
+                              style={{ 
+                                flexGrow: 1, 
+                                overflowY: 'auto', 
+                                minHeight: '200px',
+                                width: '100%' // Add this line
+                              }}
+                            >
                               {(tasks[column.id]?.active || []).map((task, index) => (
                                 <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
                                   {(provided) => renderTask(task, provided)}
@@ -348,7 +379,16 @@ function BoardView() {
                   ) : (
                     <Droppable droppableId={column.id}>
                       {(provided) => (
-                        <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
+                        <div 
+                          {...provided.droppableProps} 
+                          ref={provided.innerRef} 
+                          style={{ 
+                            flexGrow: 1, 
+                            overflowY: 'auto', 
+                            minHeight: '200px',
+                            width: '100%' // Add this line
+                          }}
+                        >
                           {(tasks[column.id] || []).map((task, index) => (
                             <Draggable key={task._id} draggableId={task._id} index={index}>
                               {(provided) => renderTask(task, provided)}
