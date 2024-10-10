@@ -212,7 +212,52 @@ function BoardView() {
       setTimeout(() => setShowCodeTooltip(false), 2000);
     }
   };
-
+  const renderTask = (task, provided) => (
+    <Paper
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      sx={{
+        p: 1,
+        mb: 1,
+        backgroundColor: task.color || '#f0f0f0',
+        cursor: 'pointer',
+        minHeight: '100px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
+        transition: 'box-shadow 0.3s ease-in-out',
+        '&:hover': {
+          boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+        },
+        width: 'calc(100% - 8px)', // Subtract padding to ensure it fits within the column
+        maxWidth: '100%',
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+      }}
+      onClick={() => handleTaskClick(task)}
+    >
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+        {task.title}
+      </Typography>
+      {task.description && (
+        <Typography
+          variant="body2"
+          sx={{
+            flexGrow: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {task.description}
+        </Typography>
+      )}
+    </Paper>
+  );
+  
   if (!board) {
     return <Typography>Loading...</Typography>;
   }
@@ -237,7 +282,7 @@ function BoardView() {
         color="primary"
         startIcon={<AddIcon />}
         onClick={() => setOpenNewTaskDialog(true)}
-        sx={{ mb: 2, alignSelf: 'flex-start', ml: 2 }}
+        sx={{ mb: 2, alignSelf: 'flex-start' }}
       >
         Add Task
       </Button>
@@ -250,17 +295,15 @@ function BoardView() {
               minWidth: 'fit-content',
               height: '100%',
               px: 2,
-              margin: '0 auto',
-              width: 'max-content'
             }}
           >
             {columns.map(column => (
-              <Box key={column.id} width={300} flexShrink={0}>
+              <Box key={column.id} width={300} minWidth={300} flexShrink={0}>
                 <Paper 
                   elevation={3} 
                   sx={{ 
                     p: 2, 
-                    height: 'calc(100vh - 150px)',
+                    height: 'calc(100vh - 200px)',
                     display: 'flex', 
                     flexDirection: 'column'
                   }}
@@ -277,17 +320,7 @@ function BoardView() {
                             <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
                               {(tasks[column.id]?.done || []).map((task, index) => (
                                 <Draggable key={task._id} draggableId={task._id} index={index}>
-                                  {(provided) => (
-                                    <Paper
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
-                                      onClick={() => handleTaskClick(task)}
-                                    >
-                                      {task.title}
-                                    </Paper>
-                                  )}
+                                  {(provided) => renderTask(task, provided)}
                                 </Draggable>
                               ))}
                               {provided.placeholder}
@@ -303,17 +336,7 @@ function BoardView() {
                             <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
                               {(tasks[column.id]?.active || []).map((task, index) => (
                                 <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
-                                  {(provided) => (
-                                    <Paper
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
-                                      onClick={() => handleTaskClick(task)}
-                                    >
-                                      {task.title}
-                                    </Paper>
-                                  )}
+                                  {(provided) => renderTask(task, provided)}
                                 </Draggable>
                               ))}
                               {provided.placeholder}
@@ -328,17 +351,7 @@ function BoardView() {
                         <div {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1, overflowY: 'auto' }}>
                           {(tasks[column.id] || []).map((task, index) => (
                             <Draggable key={task._id} draggableId={task._id} index={index}>
-                              {(provided) => (
-                                <Paper
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  sx={{ p: 1, mb: 1, backgroundColor: task.color || '#f0f0f0', cursor: 'pointer' }}
-                                  onClick={() => handleTaskClick(task)}
-                                >
-                                  {task.title}
-                                </Paper>
-                              )}
+                              {(provided) => renderTask(task, provided)}
                             </Draggable>
                           ))}
                           {provided.placeholder}
@@ -359,7 +372,7 @@ function BoardView() {
         onUpdate={handleTaskUpdate}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
-      <DialogTitle>Create New Task</DialogTitle>
+        <DialogTitle>Create New Task</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
