@@ -84,11 +84,14 @@ function BoardView() {
     const column = columns.find(col => col.id === columnId);
     if (!column || !column.wipLimit) return false;
 
-    const taskCount = column.hasSubsections
-      ? (tasks[columnId]?.active?.length || 0) + (tasks[columnId]?.done?.length || 0)
-      : (tasks[columnId]?.length || 0);
+    let taskCount;
+    if (column.hasSubsections) {
+      taskCount = (tasks[columnId]?.active?.length || 0) + (tasks[columnId]?.done?.length || 0);
+    } else {
+      taskCount = tasks[columnId]?.length || 0;
+    }
 
-    return taskCount >= column.wipLimit;
+    return taskCount > column.wipLimit;
   };
 
   const groupTasksByStatus = (tasks) => {
@@ -158,55 +161,118 @@ function BoardView() {
   };
 
   const onDragEnd = async (result) => {
-    console.log('Drag ended:', result);
     const { source, destination, draggableId } = result;
 
-    if (!destination) return;
-
-    const sourceColumn = source.droppableId;
-    const destColumn = destination.droppableId;
-
-    let newTasks = { ...tasks };
-    let movedTask;
-
-    // Remove from source
-    if (sourceColumn.includes('-')) {
-      const [colId, section] = sourceColumn.split('-');
-      movedTask = newTasks[colId][section].find(task => task._id === draggableId);
-      newTasks[colId][section] = newTasks[colId][section].filter(task => task._id !== draggableId);
-    } else {
-      movedTask = newTasks[sourceColumn].find(task => task._id === draggableId);
-      newTasks[sourceColumn] = newTasks[sourceColumn].filter(task => task._id !== draggableId);
-    }
-
-    if (!movedTask) {
-      console.error('Task not found:', draggableId);
+    // If there's no destination, we don't need to do anything
+    if (!destination) {
       return;
     }
 
-    // Add to destination
-    if (destColumn.includes('-')) {
-      const [colId, section] = destColumn.split('-');
-      newTasks[colId][section].splice(destination.index, 0, movedTask);
-      movedTask.status = mapStatusToBackend(`${colId}-${section}`);
-    } else {
-      newTasks[destColumn].splice(destination.index, 0, movedTask);
-      movedTask.status = mapStatusToBackend(destColumn);
-    }
+    // Check if the task is being moved to a different column or within the same column
+    if (
+      source.droppableId !== destination.droppableId ||
+      source.index !== destination.index
+    ) {
+      const sourceColumnId = source.droppableId.split('-')[0];
+      const destColumnId = destination.droppableId.split('-')[0];
+      const sourceColumn = columns.find(col => col.id === sourceColumnId);
+      const destColumn = columns.find(col => col.id === destColumnId);
 
-    console.log('New tasks state:', newTasks);
-    console.log('Moved task:', movedTask);
-    setTasks(newTasks);
+      // Check if the destination column has a WIP limit
+      if (destColumn.wipLimit) {
+        const destTasks = destColumn.hasSubsections
+          ? [...(tasks[destColumnId]?.active || []), ...(tasks[destColumnId]?.done || [])]
+          : tasks[destColumnId] || [];
 
-    try {
-      console.log('Updating task with status:', movedTask.status);
-      await updateTask(id, movedTask._id, { status: movedTask.status });
-      console.log('Task updated successfully:', movedTask);
-    } catch (error) {
-      console.error('Error updating task:', error);
-      // Revert the changes in the UI
-      setTasks(tasks);
+        // If the task is moving from a different column and the destination column is at or over the WIP limit, prevent the move
+        if (sourceColumnId !== destColumnId && destTasks.length >= destColumn.wipLimit) {
+          console.log('Cannot move task: WIP limit reached');
+          return; // Exit the function without updating the task status
+        }
+      }
+
+      // Proceed with updating the task status
+      const taskId = draggableId;
+      const newStatus = getNewStatus(destination.droppableId);
+
+      try {
+        await updateTask(board._id, taskId, { status: newStatus });
+
+        // Update local state
+        setTasks(prevTasks => {
+          const updatedTasks = { ...prevTasks };
+          const task = findTaskById(taskId, updatedTasks);
+
+          if (task) {
+            // Remove the task from its current location
+            removeTaskFromCurrentLocation(task, updatedTasks);
+
+            // Add the task to its new location
+            addTaskToNewLocation(task, newStatus, destination.index, updatedTasks);
+          }
+
+          return updatedTasks;
+        });
+      } catch (error) {
+        console.error('Error updating task status:', error);
+      }
     }
+  };
+
+  // Helper function to find a task by its ID
+  const findTaskById = (taskId, tasks) => {
+    for (const columnTasks of Object.values(tasks)) {
+      if (Array.isArray(columnTasks)) {
+        const task = columnTasks.find(t => t._id === taskId);
+        if (task) return task;
+      } else if (columnTasks.active || columnTasks.done) {
+        const task = columnTasks.active.find(t => t._id === taskId) || columnTasks.done.find(t => t._id === taskId);
+        if (task) return task;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to remove a task from its current location
+  const removeTaskFromCurrentLocation = (task, tasks) => {
+    for (const [columnId, columnTasks] of Object.entries(tasks)) {
+      if (Array.isArray(columnTasks)) {
+        const index = columnTasks.findIndex(t => t._id === task._id);
+        if (index !== -1) {
+          columnTasks.splice(index, 1);
+          return;
+        }
+      } else if (columnTasks.active || columnTasks.done) {
+        ['active', 'done'].forEach(subColumn => {
+          const index = columnTasks[subColumn].findIndex(t => t._id === task._id);
+          if (index !== -1) {
+            columnTasks[subColumn].splice(index, 1);
+            return;
+          }
+        });
+      }
+    }
+  };
+
+  // Helper function to add a task to its new location
+  const addTaskToNewLocation = (task, newStatus, index, tasks) => {
+    const [columnId, subColumn] = newStatus.toLowerCase().split(' ');
+    if (tasks[columnId]) {
+      if (Array.isArray(tasks[columnId])) {
+        tasks[columnId].splice(index, 0, { ...task, status: newStatus });
+      } else if (subColumn) {
+        tasks[columnId][subColumn].splice(index, 0, { ...task, status: newStatus });
+      }
+    }
+  };
+
+  // Helper function to determine the new status based on the destination droppableId
+  const getNewStatus = (droppableId) => {
+    const [columnId, subColumn] = droppableId.split('-');
+    if (subColumn) {
+      return `${columnId.charAt(0).toUpperCase() + columnId.slice(1)} ${subColumn.charAt(0).toUpperCase() + subColumn.slice(1)}`;
+    }
+    return columnId.charAt(0).toUpperCase() + columnId.slice(1);
   };
 
   const handleTaskClick = (task) => {
@@ -408,7 +474,14 @@ function BoardView() {
                   </Box>
                   {column.wipLimit && (
                     <Typography variant="caption" sx={{ mb: 1 }}>
-                      WIP Limit: {isWipLimitExceeded(column.id) ? 'Exceeded' : `${tasks[column.id]?.length || 0}/${column.wipLimit}`}
+                      WIP Limit: {
+                        isWipLimitExceeded(column.id) 
+                          ? 'Exceeded' 
+                          : `${column.hasSubsections 
+                              ? (tasks[column.id]?.active?.length || 0) + (tasks[column.id]?.done?.length || 0)
+                              : tasks[column.id]?.length || 0
+                            }/${column.wipLimit}`
+                      }
                     </Typography>
                   )}
                   {column.doneRule && (
