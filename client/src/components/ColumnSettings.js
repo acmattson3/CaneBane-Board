@@ -34,14 +34,16 @@ function ColumnSettings({ open, onClose, column, onSave }) {
           value={doneRule}
           onChange={(e) => setDoneRule(e.target.value)}
         />
-        <TextField
-          margin="dense"
-          label="WIP Limit"
-          type="number"
-          fullWidth
-          value={wipLimit}
-          onChange={(e) => setWipLimit(e.target.value)}
-        />
+        {column?.allowWipLimit && (
+          <TextField
+            margin="dense"
+            label="WIP Limit"
+            type="number"
+            fullWidth
+            value={wipLimit}
+            onChange={(e) => setWipLimit(e.target.value)}
+          />
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

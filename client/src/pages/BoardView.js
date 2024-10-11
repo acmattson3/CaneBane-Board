@@ -25,11 +25,11 @@ function BoardView() {
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [columns, setColumns] = useState([
-    { id: 'backlog', title: 'Backlog', hasSubsections: false },
-    { id: 'specification', title: 'Specification', hasSubsections: true },
-    { id: 'implementation', title: 'Implementation', hasSubsections: true },
-    { id: 'test', title: 'Test', hasSubsections: false },
-    { id: 'done', title: 'Done', hasSubsections: false }
+    { id: 'backlog', title: 'Backlog', hasSubsections: false, allowWipLimit: false },
+    { id: 'specification', title: 'Specification', hasSubsections: true, allowWipLimit: true },
+    { id: 'implementation', title: 'Implementation', hasSubsections: true, allowWipLimit: true },
+    { id: 'test', title: 'Test', hasSubsections: false, allowWipLimit: true },
+    { id: 'done', title: 'Done', hasSubsections: false, allowWipLimit: false }
   ]);
   const { id } = useParams();
   const [snackbar, setSnackbar] = useState({
@@ -85,7 +85,7 @@ function BoardView() {
 
   const isWipLimitExceeded = (columnId) => {
     const column = columns.find(col => col.id === columnId);
-    if (!column || !column.wipLimit) return false;
+    if (!column || !column.allowWipLimit || !column.wipLimit) return false;
 
     let taskCount;
     if (column.hasSubsections) {
