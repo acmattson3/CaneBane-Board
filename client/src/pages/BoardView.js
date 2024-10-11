@@ -25,11 +25,11 @@ function BoardView() {
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
   const [columns, setColumns] = useState([
-    { id: 'backlog', title: 'Backlog', hasSubsections: false },
-    { id: 'specification', title: 'Specification', hasSubsections: true },
-    { id: 'implementation', title: 'Implementation', hasSubsections: true },
-    { id: 'test', title: 'Test', hasSubsections: false },
-    { id: 'done', title: 'Done', hasSubsections: false }
+    { id: 'backlog', title: 'Backlog', hasSubsections: false, allowWipLimit: false },
+    { id: 'specification', title: 'Specification', hasSubsections: true, allowWipLimit: true },
+    { id: 'implementation', title: 'Implementation', hasSubsections: true, allowWipLimit: true },
+    { id: 'test', title: 'Test', hasSubsections: false, allowWipLimit: true },
+    { id: 'done', title: 'Done', hasSubsections: false, allowWipLimit: false }
   ]);
   const { id } = useParams();
   const [snackbar, setSnackbar] = useState({
@@ -42,10 +42,8 @@ function BoardView() {
     const fetchBoard = async () => {
       try {
         const data = await getBoard(id);
-        console.log('Fetched board data:', data);
         setBoard(data);
         const groupedTasks = groupTasksByStatus(data.tasks || []);
-        console.log('Grouped tasks:', groupedTasks);
         setTasks(groupedTasks);
         
         // Merge fetched column data with initial column structure
@@ -87,7 +85,7 @@ function BoardView() {
 
   const isWipLimitExceeded = (columnId) => {
     const column = columns.find(col => col.id === columnId);
-    if (!column || !column.wipLimit) return false;
+    if (!column || !column.allowWipLimit || !column.wipLimit) return false;
 
     let taskCount;
     if (column.hasSubsections) {
@@ -134,13 +132,11 @@ function BoardView() {
   const handleNewTask = async () => {
     try {
       const color = getRandomColor();
-      console.log('Creating new task with color:', color);
       const newTask = await createTask(id, { 
         title: newTaskTitle, 
         status: 'Backlog',
         color: color
       });
-      console.log('New task created:', newTask);
       setTasks(prev => ({
         ...prev,
         backlog: [...(prev.backlog || []), newTask]
@@ -326,10 +322,16 @@ function BoardView() {
   };
 
   const handleCopyCode = () => {
-    if (board && board.code) {
-      navigator.clipboard.writeText(board.code);
-      setShowCodeTooltip(true);
-      setTimeout(() => setShowCodeTooltip(false), 2000);
+    if (board && board.code && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(board.code)
+        .then(() => {
+          setShowCodeTooltip(true);
+          setTimeout(() => setShowCodeTooltip(false), 2000);
+        })
+        .catch(err => console.error('Failed to copy: ', err));
+    } else {
+      console.warn('Clipboard API not available');
+      // Optionally, you can provide a fallback method or show a message to the user
     }
   };
 

@@ -24,7 +24,26 @@ export const getBoards = async () => {
 };
 
 export const createBoard = async (name) => {
-  const response = await apiClient.post('/boards', { name });
+  const currentUser = getCurrentUser();
+  if (!currentUser || !currentUser.user || !currentUser.user.id) {
+    throw new Error('User data is invalid or missing');
+  }
+  
+  const defaultColumns = [
+    { id: 'backlog', title: 'Backlog', hasSubsections: false },
+    { id: 'specification', title: 'Specification', hasSubsections: true },
+    { id: 'implementation', title: 'Implementation', hasSubsections: true },
+    { id: 'test', title: 'Test', hasSubsections: false },
+    { id: 'done', title: 'Done', hasSubsections: false }
+  ];
+  
+  const boardData = { 
+    name, 
+    owner: currentUser.user.id, 
+    columns: defaultColumns
+  };
+  
+  const response = await apiClient.post('/boards', boardData);
   return response.data;
 };
 
@@ -41,7 +60,6 @@ export const joinBoard = async (code) => {
 export const getBoard = async (boardId) => {
   try {
     const response = await apiClient.get(`/boards/${boardId}`);
-    console.log('API response for getBoard:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching board:', error);
