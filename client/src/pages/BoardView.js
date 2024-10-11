@@ -56,7 +56,12 @@ function BoardView() {
         console.error('Error fetching board:', error);
       }
     };
+
     fetchBoard();
+
+    const intervalId = setInterval(fetchBoard, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
 
   const handleColumnSettingsClick = (column) => {
