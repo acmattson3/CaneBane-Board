@@ -8,11 +8,12 @@ import AddIcon from '@mui/icons-material/Add';
 import { getBoard, createTask, updateTask, updateColumn } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
+import WarningIcon from '@mui/icons-material/Warning';
 
-const getRandomColor = () => {
-  const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
+// const getRandomColor = () => {
+//   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
+//   return colors[Math.floor(Math.random() * colors.length)];
+// };
 
 function BoardView({ darkMode }) {
   const [board, setBoard] = useState(null);
@@ -137,7 +138,7 @@ function BoardView({ darkMode }) {
   const handleNewTask = async () => {
     try {
       const colorPairs = [
-        { light: '#FFD1DC', dark: '#c20000' }, // Light Pink / Dark Red
+        { light: '#FFD1DC', dark: '#d51a79' }, // Light Pink / Dark Red
         { light: '#8ffaa4', dark: '#11c000' }, // Light Green / Dark Green
         { light: '#B0E0E6', dark: '#0000cd' }, // Powder Blue / Dark Blue
         { light: '#E6E6FA', dark: '#5d00a0' }, // Lavender / Indigo
@@ -367,7 +368,7 @@ function BoardView({ darkMode }) {
 
   const renderTask = (task, provided) => {
     const colorPairs = [
-      { light: '#FFD1DC', dark: '#a40000' }, // Light Pink / Dark Red
+      { light: '#FFD1DC', dark: '#d51a79' }, // Light Pink / Dark Red
       { light: '#8ffaa4', dark: '#11c000' }, // Light Green / Dark Green
       { light: '#B0E0E6', dark: '#0000cd' }, // Powder Blue / Dark Blue
       { light: '#E6E6FA', dark: '#5d00a0' }, // Lavender / Indigo
@@ -521,6 +522,7 @@ function BoardView({ darkMode }) {
                     flexDirection: 'column',
                     height: '100%',
                     minHeight: 'calc(100vh - 200px)',
+                    border: isWipLimitExceeded(column.id) ? '2px solid red' : 'none',
                   }}
                 >
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
@@ -533,23 +535,49 @@ function BoardView({ darkMode }) {
                       </IconButton>
                     </Tooltip>
                   </Box>
+                  
+                  {isWipLimitExceeded(column.id) && (
+                    <Box
+                      sx={{
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        color: 'red',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        py: 0.5,
+                        mb: 1,
+                        borderRadius: 1,
+                      }}
+                    >
+                      <WarningIcon sx={{ mr: 1, fontSize: '0.9rem' }} />
+                      <Typography variant="caption" fontWeight="bold">WIP Limit Exceeded</Typography>
+                    </Box>
+                  )}
+                  
                   {column.wipLimit && (
-                    <Typography variant="caption" sx={{ mb: 1 }}>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        mb: 1, 
+                        color: isWipLimitExceeded(column.id) ? 'red' : 'inherit',
+                        fontWeight: isWipLimitExceeded(column.id) ? 'bold' : 'normal',
+                      }}
+                    >
                       WIP Limit: {
-                        isWipLimitExceeded(column.id) 
-                          ? 'Exceeded' 
-                          : `${column.hasSubsections 
-                              ? (tasks[column.id]?.active?.length || 0) + (tasks[column.id]?.done?.length || 0)
-                              : tasks[column.id]?.length || 0
-                            }/${column.wipLimit}`
+                        `${column.hasSubsections 
+                          ? (tasks[column.id]?.active?.length || 0) + (tasks[column.id]?.done?.length || 0)
+                          : tasks[column.id]?.length || 0
+                        }/${column.wipLimit}`
                       }
                     </Typography>
                   )}
+                  
                   {column.doneRule && (
                     <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
                       Done Rule: {column.doneRule}
                     </Typography>
                   )}
+                  
                   {column.hasSubsections ? (
                     <Box display="flex" flexGrow={1}>
                       <Box width="50%" pr={1} display="flex" flexDirection="column">
