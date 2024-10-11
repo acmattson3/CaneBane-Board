@@ -327,16 +327,32 @@ function BoardView() {
   };
 
   const handleCopyCode = () => {
-    if (board && board.code && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(board.code)
-        .then(() => {
+    if (board && board.code) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(board.code)
+          .then(() => {
+            setShowCodeTooltip(true);
+            setTimeout(() => setShowCodeTooltip(false), 2000);
+          })
+          .catch(err => console.error('Failed to copy: ', err));
+      } else {
+        // Fallback for browsers that do not support the Clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = board.code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
           setShowCodeTooltip(true);
           setTimeout(() => setShowCodeTooltip(false), 2000);
-        })
-        .catch(err => console.error('Failed to copy: ', err));
+        } catch (err) {
+          console.error('Fallback: Unable to copy', err);
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
     } else {
-      console.warn('Clipboard API not available');
-      // Optionally, you can provide a fallback method or show a message to the user
+      console.warn('No code available to copy');
     }
   };
 
