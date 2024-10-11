@@ -33,23 +33,17 @@ function Dashboard() {
 
   const fetchBoards = useCallback(async () => {
     try {
-      console.log('Fetching boards...');
       const data = await getBoards();
-      console.log('Fetched boards:', data);
       setBoards(data);
     } catch (error) {
-      console.error('Error fetching boards:', error);
       setError('Failed to fetch boards');
     }
   }, []);
 
   useEffect(() => {
-    console.log('Dashboard useEffect running');
     if (!currentUser) {
-      console.log('No current user, navigating to login');
       navigate('/login');
     } else if (!fetchedRef.current) {
-      console.log('Current user found, fetching boards');
       fetchBoards();
       fetchedRef.current = true;
     }
@@ -62,19 +56,11 @@ function Dashboard() {
   const handleCreateBoard = async () => {
     try {
       setError('');
-      console.log('Creating new board with name:', newBoardName);
       const newBoard = await createBoard(newBoardName);
-      console.log('New board created:', newBoard);
-      setBoards(prevBoards => {
-        const updatedBoards = [...prevBoards, newBoard];
-        console.log('Updated boards:', updatedBoards);
-        return updatedBoards;
-      });
+      setBoards(prevBoards => [...prevBoards, newBoard]);
       setNewBoardName('');
       setOpenCreateDialog(false);
     } catch (error) {
-      console.error('Error creating board:', error);
-      console.error('Error response:', error.response);
       setError(error.response?.data?.message || 'Error creating board');
     }
   };
@@ -82,14 +68,11 @@ function Dashboard() {
   const handleJoinBoard = async () => {
     try {
       setError('');
-      console.log('Joining board with code:', boardCode);
       const joinedBoard = await joinBoard(boardCode);
-      console.log('Joined board:', joinedBoard);
       setBoards(prevBoards => [...prevBoards, joinedBoard]);
       setBoardCode('');
       setOpenJoinDialog(false);
     } catch (error) {
-      console.error('Error joining board:', error);
       setError(error.response?.data?.message || 'Error joining board');
     }
   };

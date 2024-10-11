@@ -110,8 +110,6 @@ exports.createTask = async (req, res) => {
     board.tasks.push(newTask);
     await board.save();
 
-    console.log('New task created:', newTask);
-
     res.status(201).json(newTask);
   } catch (error) {
     console.error('Error creating task:', error);
@@ -173,35 +171,26 @@ exports.joinBoard = async (req, res) => {
 };
 
 exports.updateColumn = async (req, res) => {
-  console.log('updateColumn called with params:', req.params);
-  console.log('updateColumn request body:', req.body);
   try {
     const { boardId, columnId } = req.params;
     const { wipLimit, doneRule } = req.body;
 
-    console.log(`Attempting to find board with id: ${boardId}`);
     const board = await Board.findById(boardId);
     if (!board) {
-      console.log(`Board not found with id: ${boardId}`);
       return res.status(404).json({ error: 'Board not found' });
     }
 
-    console.log(`Attempting to find column with id: ${columnId}`);
     const columnIndex = board.columns.findIndex(col => col.id === columnId);
     if (columnIndex === -1) {
-      console.log(`Column not found with id: ${columnId}`);
       return res.status(404).json({ error: 'Column not found' });
     }
 
     board.columns[columnIndex].wipLimit = wipLimit;
     board.columns[columnIndex].doneRule = doneRule;
 
-    console.log('Saving updated board');
     await board.save();
-    console.log('Board saved successfully');
     res.status(200).json(board.columns[columnIndex]);
   } catch (error) {
-    console.error('Error in updateColumn:', error);
     res.status(400).json({ error: error.message });
   }
 };

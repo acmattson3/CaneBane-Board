@@ -25,9 +25,7 @@ export const getBoards = async () => {
 
 export const createBoard = async (name) => {
   const currentUser = getCurrentUser();
-  console.log('Current user:', currentUser);
   if (!currentUser || !currentUser.user || !currentUser.user.id) {
-    console.error('Invalid user data:', currentUser);
     throw new Error('User data is invalid or missing');
   }
   
@@ -41,14 +39,11 @@ export const createBoard = async (name) => {
   
   const boardData = { 
     name, 
-    owner: currentUser.user.id, // Make sure this is correct
+    owner: currentUser.user.id, 
     columns: defaultColumns
   };
   
-  console.log('Sending board data:', boardData);
-  
   const response = await apiClient.post('/boards', boardData);
-  console.log('Server response:', response.data);
   return response.data;
 };
 
@@ -65,7 +60,6 @@ export const joinBoard = async (code) => {
 export const getBoard = async (boardId) => {
   try {
     const response = await apiClient.get(`/boards/${boardId}`);
-    console.log('API response for getBoard:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching board:', error);

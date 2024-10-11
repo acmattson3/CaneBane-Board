@@ -42,10 +42,8 @@ function BoardView() {
     const fetchBoard = async () => {
       try {
         const data = await getBoard(id);
-        console.log('Fetched board data:', data);
         setBoard(data);
         const groupedTasks = groupTasksByStatus(data.tasks || []);
-        console.log('Grouped tasks:', groupedTasks);
         setTasks(groupedTasks);
         
         // Merge fetched column data with initial column structure
@@ -134,13 +132,11 @@ function BoardView() {
   const handleNewTask = async () => {
     try {
       const color = getRandomColor();
-      console.log('Creating new task with color:', color);
       const newTask = await createTask(id, { 
         title: newTaskTitle, 
         status: 'Backlog',
         color: color
       });
-      console.log('New task created:', newTask);
       setTasks(prev => ({
         ...prev,
         backlog: [...(prev.backlog || []), newTask]
