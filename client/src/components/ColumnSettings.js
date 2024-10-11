@@ -13,9 +13,14 @@ function ColumnSettings({ open, onClose, column, onSave }) {
   }, [column]);
 
   const handleSave = () => {
+    const wipLimitValue = wipLimit ? parseInt(wipLimit, 10) : null;
+    if (wipLimitValue < 1) {
+      alert('WIP Limit must be least 1.');
+      return;
+    }
     onSave(column.id, {
       doneRule,
-      wipLimit: wipLimit ? parseInt(wipLimit, 10) : null
+      wipLimit: wipLimitValue
     });
     onClose();
   };
