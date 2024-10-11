@@ -11,7 +11,7 @@ function LandingPage() {
         flexDirection: 'column',
         minHeight: '100vh',
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5', // Light grey background
+        //backgroundColor: '#f5f5f5', // Light grey background
       }}
     >
       <Container maxWidth="md">
