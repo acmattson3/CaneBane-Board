@@ -326,10 +326,16 @@ function BoardView() {
   };
 
   const handleCopyCode = () => {
-    if (board && board.code) {
-      navigator.clipboard.writeText(board.code);
-      setShowCodeTooltip(true);
-      setTimeout(() => setShowCodeTooltip(false), 2000);
+    if (board && board.code && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(board.code)
+        .then(() => {
+          setShowCodeTooltip(true);
+          setTimeout(() => setShowCodeTooltip(false), 2000);
+        })
+        .catch(err => console.error('Failed to copy: ', err));
+    } else {
+      console.warn('Clipboard API not available');
+      // Optionally, you can provide a fallback method or show a message to the user
     }
   };
 
