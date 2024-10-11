@@ -547,7 +547,7 @@ function BoardView() {
                           )}
                         </Droppable>
                       </Box>
-                      <Divider orientation="vertical" flexItem />
+                      <Divider orientation="vertical" flexItem sx={{ borderWidth: 1, borderColor: 'grey.400' }} />
                       <Box width="50%" pl={1} display="flex" flexDirection="column">
                         <Typography variant="subtitle2" align="center">Done</Typography>
                         <Droppable droppableId={`${column.id}-done`}>
