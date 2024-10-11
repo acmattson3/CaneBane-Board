@@ -116,7 +116,7 @@ function BoardView({ darkMode }) {
     }, {});
 
     tasks.forEach(task => {
-      console.log('Processing task:', task);
+      //console.log('Processing task:', task);
       const status = task.status.toLowerCase();
       if (status === 'specification active') {
         grouped['specification'].active.push(task);
@@ -517,23 +517,28 @@ function BoardView({ darkMode }) {
               >
                 <Paper 
                   elevation={3} 
-                  sx={{ 
+                  sx={(theme) => ({ 
                     display: 'flex', 
                     flexDirection: 'column',
-                    height: '100%',
-                    minHeight: 'calc(100vh - 200px)',
-                    border: isWipLimitExceeded(column.id) ? '2px solid' : 'none',
-                    borderColor: 'error.main',
+                    height: 'calc(100vh - 200px)', // Fixed height
+                    border: isWipLimitExceeded(column.id) 
+                      ? `2px solid ${theme.palette.error.main}`
+                      : `1px solid ${theme.palette.divider}`,
                     overflow: 'hidden',
-                  }}
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? theme.palette.background.paper 
+                      : theme.palette.background.default,
+                  })}
                 >
                   <Box 
-                    sx={{ 
+                    sx={(theme) => ({ 
                       p: 2, 
-                      backgroundColor: 'background.paper', 
+                      backgroundColor: theme.palette.mode === 'dark'
+                        ? theme.palette.background.default
+                        : theme.palette.background.paper,
                       borderBottom: '1px solid',
                       borderColor: 'divider',
-                    }}
+                    })}
                   >
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                       <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
@@ -555,12 +560,18 @@ function BoardView({ darkMode }) {
                             : tasks[column.id]?.length || 0
                         }/${column.wipLimit}`}
                         color={isWipLimitExceeded(column.id) ? "error" : "default"}
-                        sx={{ 
-                          backgroundColor: isWipLimitExceeded(column.id) ? 'error.main' : 'action.selected',
-                          color: isWipLimitExceeded(column.id) ? 'error.contrastText' : 'text.primary',
+                        sx={(theme) => ({ 
+                          backgroundColor: isWipLimitExceeded(column.id) 
+                            ? theme.palette.error.main 
+                            : theme.palette.mode === 'dark'
+                              ? theme.palette.action.selected
+                              : theme.palette.action.hover,
+                          color: isWipLimitExceeded(column.id) 
+                            ? theme.palette.error.contrastText 
+                            : theme.palette.text.primary,
                           fontWeight: isWipLimitExceeded(column.id) ? 'bold' : 'normal',
                           mb: 1,
-                        }}
+                        })}
                       />
                     )}
                     
@@ -592,22 +603,39 @@ function BoardView({ darkMode }) {
                     </Box>
                   )}
                   
-                  <Box sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
+                  <Box sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    overflow: 'hidden'
+                  }}>
                     {column.hasSubsections ? (
-                      <Box display="flex" flexGrow={1}>
-                        <Box width="50%" pr={1} display="flex" flexDirection="column">
-                          <Typography variant="subtitle2" align="center">Active</Typography>
+                      <Box display="flex" flexGrow={1} overflow="hidden">
+                        <Box width="50%" display="flex" flexDirection="column" overflow="hidden">
+                          <Typography 
+                            variant="subtitle2" 
+                            align="center" 
+                            sx={(theme) => ({ 
+                              py: 1, 
+                              px: 2,
+                              borderBottom: '1px solid',
+                              borderColor: 'divider',
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? theme.palette.grey[800] 
+                                : theme.palette.grey[100],
+                              fontWeight: 'bold'
+                            })}
+                          >
+                            Active
+                          </Typography>
                           <Droppable droppableId={`${column.id}-active`}>
                             {(provided) => (
-                              <div 
+                              <Box 
                                 {...provided.droppableProps} 
-                                ref={provided.innerRef} 
-                                style={{ 
-                                  flexGrow: 1, 
-                                  overflowY: 'auto', 
-                                  minHeight: '200px',
-                                  width: '100%'
-                                }}
+                                ref={provided.innerRef}
+                                flexGrow={1} 
+                                overflow="auto" 
+                                sx={{ p: 1 }}
                               >
                                 {(tasks[column.id]?.active || []).map((task, index) => (
                                   <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
@@ -615,24 +643,45 @@ function BoardView({ darkMode }) {
                                   </Draggable>
                                 ))}
                                 {provided.placeholder}
-                              </div>
+                              </Box>
                             )}
                           </Droppable>
                         </Box>
-                        <Divider orientation="vertical" flexItem sx={{ borderWidth: 1, borderColor: 'grey.400' }} />
-                        <Box width="50%" pl={1} display="flex" flexDirection="column">
-                          <Typography variant="subtitle2" align="center">Done</Typography>
+                        <Divider 
+                          orientation="vertical" 
+                          flexItem 
+                          sx={(theme) => ({
+                            width: 2,
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? theme.palette.grey[600]
+                              : theme.palette.grey[400],
+                          })}
+                        />
+                        <Box width="50%" display="flex" flexDirection="column" overflow="hidden">
+                          <Typography 
+                            variant="subtitle2" 
+                            align="center" 
+                            sx={(theme) => ({ 
+                              py: 1, 
+                              px: 2,
+                              borderBottom: '1px solid',
+                              borderColor: 'divider',
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? theme.palette.grey[800] 
+                                : theme.palette.grey[100],
+                              fontWeight: 'bold'
+                            })}
+                          >
+                            Done
+                          </Typography>
                           <Droppable droppableId={`${column.id}-done`}>
                             {(provided) => (
-                              <div 
+                              <Box 
                                 {...provided.droppableProps} 
-                                ref={provided.innerRef} 
-                                style={{ 
-                                  flexGrow: 1, 
-                                  overflowY: 'auto', 
-                                  minHeight: '200px',
-                                  width: '100%'
-                                }}
+                                ref={provided.innerRef}
+                                flexGrow={1} 
+                                overflow="auto" 
+                                sx={{ p: 1 }}
                               >
                                 {(tasks[column.id]?.done || []).map((task, index) => (
                                   <Draggable key={task._id} draggableId={task._id} index={index}>
@@ -640,7 +689,7 @@ function BoardView({ darkMode }) {
                                   </Draggable>
                                 ))}
                                 {provided.placeholder}
-                              </div>
+                              </Box>
                             )}
                           </Droppable>
                         </Box>
@@ -648,15 +697,12 @@ function BoardView({ darkMode }) {
                     ) : (
                       <Droppable droppableId={column.id}>
                         {(provided) => (
-                          <div 
+                          <Box 
                             {...provided.droppableProps} 
-                            ref={provided.innerRef} 
-                            style={{ 
-                              flexGrow: 1, 
-                              overflowY: 'auto', 
-                              minHeight: '200px',
-                              width: '100%'
-                            }}
+                            ref={provided.innerRef}
+                            flexGrow={1} 
+                            overflow="auto" 
+                            sx={{ p: 1 }}
                           >
                             {(tasks[column.id] || []).map((task, index) => (
                               <Draggable key={task._id} draggableId={task._id} index={index}>
@@ -664,7 +710,7 @@ function BoardView({ darkMode }) {
                               </Draggable>
                             ))}
                             {provided.placeholder}
-                          </div>
+                          </Box>
                         )}
                       </Droppable>
                     )}
