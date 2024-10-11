@@ -13,7 +13,7 @@ function LandingPage() {
         <Typography variant="h5" component="h2" gutterBottom>
           Your personal Kanban board manager
         </Typography>
-        <Button variant="contained" color="primary" component={RouterLink} to="/login" sx={{ mt: 4 }}>
+        <Button variant="contained" color="primary" component={RouterLink} to="/signup" sx={{ mt: 4 }}>
           Get Started
         </Button>
       </Box>

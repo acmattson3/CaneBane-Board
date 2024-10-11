@@ -1,6 +1,7 @@
 // src/components/SignUp.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 import { register } from '../services/auth';
 
@@ -72,6 +73,16 @@ function SignUp() {
           >
             Sign Up
           </Button>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="body2">
+              Already have an account?{' '}
+              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+                <Button color="primary" size="small">
+                  Log In
+                </Button>
+              </RouterLink>
+            </Typography>
+          </Box>
           {error && (
             <Typography color="error" align="center">
               {error}
