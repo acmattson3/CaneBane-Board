@@ -16,14 +16,15 @@ const router = express.Router();
 
 router.use(auth);
 
-router.get('/', getBoards);
-router.get('/:id', getBoard);
-router.post('/', createBoard);
-router.put('/:id', updateBoard);
-router.delete('/:id', deleteBoard);
-router.post('/:id/tasks', createTask);
-router.put('/:boardId/tasks/:taskId', updateTask);
-router.post('/join', joinBoard);
-router.put('/:boardId/columns/:columnId', updateColumn);
+// Apply auth middleware to all routes
+router.get('/', auth, getBoards);
+router.get('/:id', auth, getBoard);
+router.post('/', auth, createBoard);
+router.put('/:id', auth, updateBoard);
+router.delete('/:id', auth, deleteBoard);
+router.post('/:id/tasks', auth, createTask);
+router.put('/:boardId/tasks/:taskId', auth, updateTask);
+router.post('/join', auth, joinBoard);
+router.put('/:boardId/columns/:columnId', auth, updateColumn);
 
 module.exports = router;

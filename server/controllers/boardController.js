@@ -27,7 +27,13 @@ exports.getBoard = async (req, res) => {
 
 exports.createBoard = async (req, res) => {
   try {
+    console.log('Received board creation request:', req.body);
     const { name, owner, columns } = req.body;
+    
+    if (!name || !owner || !columns) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
     const board = new Board({
       name,
       owner,
@@ -37,10 +43,14 @@ exports.createBoard = async (req, res) => {
         doneRule: column.doneRule || ''
       }))
     });
+    
+    console.log('Creating board:', board);
     await board.save();
+    console.log('Board created successfully');
     res.status(201).json(board);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error creating board:', error);
+    res.status(400).json({ message: error.message });
   }
 };
 

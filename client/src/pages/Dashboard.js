@@ -74,6 +74,7 @@ function Dashboard() {
       setOpenCreateDialog(false);
     } catch (error) {
       console.error('Error creating board:', error);
+      console.error('Error response:', error.response);
       setError(error.response?.data?.message || 'Error creating board');
     }
   };

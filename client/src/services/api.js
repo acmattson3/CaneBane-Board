@@ -24,7 +24,31 @@ export const getBoards = async () => {
 };
 
 export const createBoard = async (name) => {
-  const response = await apiClient.post('/boards', { name });
+  const currentUser = getCurrentUser();
+  console.log('Current user:', currentUser);
+  if (!currentUser || !currentUser.user || !currentUser.user.id) {
+    console.error('Invalid user data:', currentUser);
+    throw new Error('User data is invalid or missing');
+  }
+  
+  const defaultColumns = [
+    { id: 'backlog', title: 'Backlog', hasSubsections: false },
+    { id: 'specification', title: 'Specification', hasSubsections: true },
+    { id: 'implementation', title: 'Implementation', hasSubsections: true },
+    { id: 'test', title: 'Test', hasSubsections: false },
+    { id: 'done', title: 'Done', hasSubsections: false }
+  ];
+  
+  const boardData = { 
+    name, 
+    owner: currentUser.user.id, // Make sure this is correct
+    columns: defaultColumns
+  };
+  
+  console.log('Sending board data:', boardData);
+  
+  const response = await apiClient.post('/boards', boardData);
+  console.log('Server response:', response.data);
   return response.data;
 };
 
