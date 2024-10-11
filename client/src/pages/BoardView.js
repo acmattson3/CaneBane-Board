@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert, Chip } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -9,6 +9,7 @@ import { getBoard, createTask, updateTask, updateColumn } from '../services/api'
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 // const getRandomColor = () => {
 //   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
@@ -517,36 +518,73 @@ function BoardView({ darkMode }) {
                 <Paper 
                   elevation={3} 
                   sx={{ 
-                    p: 2, 
                     display: 'flex', 
                     flexDirection: 'column',
                     height: '100%',
                     minHeight: 'calc(100vh - 200px)',
-                    border: isWipLimitExceeded(column.id) ? '2px solid red' : 'none',
+                    border: isWipLimitExceeded(column.id) ? '2px solid' : 'none',
+                    borderColor: 'error.main',
+                    overflow: 'hidden',
                   }}
                 >
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="h6" sx={{ textAlign: 'center' }}>
-                      {column.title}
-                    </Typography>
-                    <Tooltip title="Column Settings">
-                      <IconButton onClick={() => handleColumnSettingsClick(column)} size="small">
-                        <HelpOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                  <Box 
+                    sx={{ 
+                      p: 2, 
+                      backgroundColor: 'background.paper', 
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        {column.title}
+                      </Typography>
+                      <Tooltip title="Column Settings">
+                        <IconButton onClick={() => handleColumnSettingsClick(column)} size="small" sx={{ color: 'text.secondary' }}>
+                          <HelpOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                    
+                    {column.wipLimit && (
+                      <Chip
+                        size="small"
+                        label={`WIP: ${
+                          column.hasSubsections 
+                            ? (tasks[column.id]?.active?.length || 0) + (tasks[column.id]?.done?.length || 0)
+                            : tasks[column.id]?.length || 0
+                        }/${column.wipLimit}`}
+                        color={isWipLimitExceeded(column.id) ? "error" : "default"}
+                        sx={{ 
+                          backgroundColor: isWipLimitExceeded(column.id) ? 'error.main' : 'action.selected',
+                          color: isWipLimitExceeded(column.id) ? 'error.contrastText' : 'text.primary',
+                          fontWeight: isWipLimitExceeded(column.id) ? 'bold' : 'normal',
+                          mb: 1,
+                        }}
+                      />
+                    )}
+                    
+                    {column.doneRule && (
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                          Done Rule:
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                          {column.doneRule}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                   
                   {isWipLimitExceeded(column.id) && (
                     <Box
                       sx={{
-                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                        color: 'red',
+                        backgroundColor: 'error.main',
+                        color: 'error.contrastText',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         py: 0.5,
-                        mb: 1,
-                        borderRadius: 1,
                       }}
                     >
                       <WarningIcon sx={{ mr: 1, fontSize: '0.9rem' }} />
@@ -554,105 +592,83 @@ function BoardView({ darkMode }) {
                     </Box>
                   )}
                   
-                  {column.wipLimit && (
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        mb: 1, 
-                        color: isWipLimitExceeded(column.id) ? 'red' : 'inherit',
-                        fontWeight: isWipLimitExceeded(column.id) ? 'bold' : 'normal',
-                      }}
-                    >
-                      WIP Limit: {
-                        `${column.hasSubsections 
-                          ? (tasks[column.id]?.active?.length || 0) + (tasks[column.id]?.done?.length || 0)
-                          : tasks[column.id]?.length || 0
-                        }/${column.wipLimit}`
-                      }
-                    </Typography>
-                  )}
-                  
-                  {column.doneRule && (
-                    <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
-                      Done Rule: {column.doneRule}
-                    </Typography>
-                  )}
-                  
-                  {column.hasSubsections ? (
-                    <Box display="flex" flexGrow={1}>
-                      <Box width="50%" pr={1} display="flex" flexDirection="column">
-                        <Typography variant="subtitle2" align="center">Active</Typography>
-                        <Droppable droppableId={`${column.id}-active`}>
-                          {(provided) => (
-                            <div 
-                              {...provided.droppableProps} 
-                              ref={provided.innerRef} 
-                              style={{ 
-                                flexGrow: 1, 
-                                overflowY: 'auto', 
-                                minHeight: '200px',
-                                width: '100%'
-                              }}
-                            >
-                              {(tasks[column.id]?.active || []).map((task, index) => (
-                                <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
-                                  {(provided) => renderTask(task, provided)}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
+                  <Box sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
+                    {column.hasSubsections ? (
+                      <Box display="flex" flexGrow={1}>
+                        <Box width="50%" pr={1} display="flex" flexDirection="column">
+                          <Typography variant="subtitle2" align="center">Active</Typography>
+                          <Droppable droppableId={`${column.id}-active`}>
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps} 
+                                ref={provided.innerRef} 
+                                style={{ 
+                                  flexGrow: 1, 
+                                  overflowY: 'auto', 
+                                  minHeight: '200px',
+                                  width: '100%'
+                                }}
+                              >
+                                {(tasks[column.id]?.active || []).map((task, index) => (
+                                  <Draggable key={task._id.toString()} draggableId={task._id.toString()} index={index}>
+                                    {(provided) => renderTask(task, provided)}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </Box>
+                        <Divider orientation="vertical" flexItem sx={{ borderWidth: 1, borderColor: 'grey.400' }} />
+                        <Box width="50%" pl={1} display="flex" flexDirection="column">
+                          <Typography variant="subtitle2" align="center">Done</Typography>
+                          <Droppable droppableId={`${column.id}-done`}>
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps} 
+                                ref={provided.innerRef} 
+                                style={{ 
+                                  flexGrow: 1, 
+                                  overflowY: 'auto', 
+                                  minHeight: '200px',
+                                  width: '100%'
+                                }}
+                              >
+                                {(tasks[column.id]?.done || []).map((task, index) => (
+                                  <Draggable key={task._id} draggableId={task._id} index={index}>
+                                    {(provided) => renderTask(task, provided)}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </Box>
                       </Box>
-                      <Divider orientation="vertical" flexItem sx={{ borderWidth: 1, borderColor: 'grey.400' }} />
-                      <Box width="50%" pl={1} display="flex" flexDirection="column">
-                        <Typography variant="subtitle2" align="center">Done</Typography>
-                        <Droppable droppableId={`${column.id}-done`}>
-                          {(provided) => (
-                            <div 
-                              {...provided.droppableProps} 
-                              ref={provided.innerRef} 
-                              style={{ 
-                                flexGrow: 1, 
-                                overflowY: 'auto', 
-                                minHeight: '200px',
-                                width: '100%'
-                              }}
-                            >
-                              {(tasks[column.id]?.done || []).map((task, index) => (
-                                <Draggable key={task._id} draggableId={task._id} index={index}>
-                                  {(provided) => renderTask(task, provided)}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Droppable droppableId={column.id}>
-                      {(provided) => (
-                        <div 
-                          {...provided.droppableProps} 
-                          ref={provided.innerRef} 
-                          style={{ 
-                            flexGrow: 1, 
-                            overflowY: 'auto', 
-                            minHeight: '200px',
-                            width: '100%'
-                          }}
-                        >
-                          {(tasks[column.id] || []).map((task, index) => (
-                            <Draggable key={task._id} draggableId={task._id} index={index}>
-                              {(provided) => renderTask(task, provided)}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  )}
+                    ) : (
+                      <Droppable droppableId={column.id}>
+                        {(provided) => (
+                          <div 
+                            {...provided.droppableProps} 
+                            ref={provided.innerRef} 
+                            style={{ 
+                              flexGrow: 1, 
+                              overflowY: 'auto', 
+                              minHeight: '200px',
+                              width: '100%'
+                            }}
+                          >
+                            {(tasks[column.id] || []).map((task, index) => (
+                              <Draggable key={task._id} draggableId={task._id} index={index}>
+                                {(provided) => renderTask(task, provided)}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    )}
+                  </Box>
                 </Paper>
               </Box>
             ))}
