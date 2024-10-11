@@ -13,41 +13,28 @@ exports.register = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Error registering new user' });
+    console.error('Registration error:', error.message);
+    res.status(500).json({ message: 'Registration failed' });
   }
 };
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for email:', email);
-    
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      console.log('Invalid password for email:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    
-    console.log('Login successful for email:', email);
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
-    });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error('Login error:', error.message);
+    res.status(500).json({ message: 'Login failed' });
   }
 };

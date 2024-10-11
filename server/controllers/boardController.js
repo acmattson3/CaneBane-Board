@@ -15,13 +15,17 @@ exports.getBoard = async (req, res) => {
   try {
     const board = await Board.findById(req.params.id);
     if (!board) {
+      console.error(`Board not found: ${req.params.id}`); // Log only the ID if not found
       return res.status(404).json({ message: 'Board not found' });
     }
-    console.log('Retrieved board:', JSON.stringify(board, null, 2));
+    
+    // Log a success message without the board contents
+    console.log(`Board loaded successfully: ${board.name} (ID: ${board._id})`); // Log only the name and ID
+
     res.json(board);
   } catch (error) {
-    console.error('Error retrieving board:', error);
-    res.status(500).json({ message: 'Error retrieving board' });
+    console.error('Error fetching board:', error.message);
+    res.status(500).json({ message: 'Error fetching board' });
   }
 };
 
@@ -73,7 +77,8 @@ exports.updateBoard = async (req, res) => {
     await board.save();
     res.status(200).json(board);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error updating board:', error.message);
+    res.status(400).json({ error: 'Update failed' });
   }
 };
 
@@ -81,12 +86,12 @@ exports.deleteBoard = async (req, res) => {
   try {
     const board = await Board.findOneAndDelete({ _id: req.params.id, owner: req.user.id });
     if (!board) {
-      return res.status(404).json({ message: 'Board not found or you do not have permission to delete' });
+      return res.status(404).json({ message: 'Board not found or permission denied' });
     }
     res.json({ message: 'Board deleted successfully' });
   } catch (error) {
-    console.error('Error deleting board:', error);
-    res.status(500).json({ message: 'Error deleting board', error: error.message });
+    console.error('Error deleting board:', error.message);
+    res.status(500).json({ message: 'Deletion failed' });
   }
 };
 
