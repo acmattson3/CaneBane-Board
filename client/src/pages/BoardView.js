@@ -14,7 +14,7 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-function BoardView() {
+function BoardView({ darkMode }) {
   const [board, setBoard] = useState(null);
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
@@ -136,7 +136,16 @@ function BoardView() {
 
   const handleNewTask = async () => {
     try {
-      const color = getRandomColor();
+      const colorPairs = [
+        { light: '#FFD1DC', dark: '#c20000' }, // Light Pink / Dark Red
+        { light: '#8ffaa4', dark: '#11c000' }, // Light Green / Dark Green
+        { light: '#B0E0E6', dark: '#0000cd' }, // Powder Blue / Dark Blue
+        { light: '#E6E6FA', dark: '#5d00a0' }, // Lavender / Indigo
+        { light: '#ffeb00', dark: '#e88408' }, // Yellow / Saddle Brown
+      ];
+      const randomColorPair = colorPairs[Math.floor(Math.random() * colorPairs.length)];
+      const color = darkMode ? randomColorPair.dark : randomColorPair.light;
+      
       const newTask = await createTask(id, { 
         title: newTaskTitle, 
         status: 'Backlog',
@@ -356,54 +365,74 @@ function BoardView() {
     }
   };
 
-  const renderTask = (task, provided) => (
-    <Paper
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      {...provided.dragHandleProps}
-      sx={{
-        p: 1,
-        mb: 1,
-        backgroundColor: task.color || '#f0f0f0',
-        cursor: 'pointer',
-        minHeight: '100px',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
-        transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
-        '&:hover': {
-          boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-          transform: 'translateY(-2px) rotate(1deg)',
-        },
-        width: 'calc(100% - 8px)', // Subtract padding to ensure it fits within the column
-        maxWidth: '100%',
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
-        borderRadius: '2px',
-        transform: 'rotate(-1deg)',
-      }}
-      onClick={() => handleTaskClick(task)}
-    >
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
-        {task.title}
-      </Typography>
-      {task.description && (
-        <Typography
-          variant="body2"
-          sx={{
-            flexGrow: 1,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
-          {task.description}
+  const renderTask = (task, provided) => {
+    const colorPairs = [
+      { light: '#FFD1DC', dark: '#a40000' }, // Light Pink / Dark Red
+      { light: '#8ffaa4', dark: '#11c000' }, // Light Green / Dark Green
+      { light: '#B0E0E6', dark: '#0000cd' }, // Powder Blue / Dark Blue
+      { light: '#E6E6FA', dark: '#5d00a0' }, // Lavender / Indigo
+      { light: '#ffeb00', dark: '#e88408' }, // Yellow / Dark Orange
+    ];
+
+    const getTaskColor = () => {
+      if (!task.color) return colorPairs[0];
+      const colorIndex = colorPairs.findIndex(pair => pair.light === task.color || pair.dark === task.color);
+      return colorIndex !== -1 ? colorPairs[colorIndex] : colorPairs[0];
+    };
+
+    const taskColor = getTaskColor();
+    const isLightMode = !darkMode; // Assuming you have a darkMode state or prop
+
+    return (
+      <Paper
+        ref={provided.innerRef}
+        {...provided.draggableProps}
+        {...provided.dragHandleProps}
+        sx={{
+          p: 1,
+          mb: 1,
+          backgroundColor: isLightMode ? taskColor.light : taskColor.dark,
+          color: isLightMode ? 'rgba(0, 0, 0, 0.87)' : 'rgba(255, 255, 255, 0.87)',
+          cursor: 'pointer',
+          minHeight: '100px',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 3px 5px rgba(0,0,0,0.2)',
+          transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
+          '&:hover': {
+            boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+            transform: 'translateY(-2px) rotate(1deg)',
+          },
+          width: 'calc(100% - 8px)',
+          maxWidth: '100%',
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
+          borderRadius: '2px',
+          transform: 'rotate(-1deg)',
+        }}
+        onClick={() => handleTaskClick(task)}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {task.title}
         </Typography>
-      )}
-    </Paper>
-  );
+        {task.description && (
+          <Typography
+            variant="body2"
+            sx={{
+              flexGrow: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {task.description}
+          </Typography>
+        )}
+      </Paper>
+    );
+  };
   
   if (!board) {
     return <Typography>Loading...</Typography>;
