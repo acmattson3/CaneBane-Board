@@ -190,12 +190,16 @@ exports.updateColumn = async (req, res) => {
       return res.status(404).json({ error: 'Column not found' });
     }
 
-    if (wipLimit < 1) {
-      return res.status(400).json({ error: 'WIP Limit must be at least 1' });
+    if (wipLimit !== undefined) {
+      if (wipLimit !== null && wipLimit < 1) {
+        return res.status(400).json({ error: 'WIP Limit must be at least 1' });
+      }
+      board.columns[columnIndex].wipLimit = wipLimit;
     }
 
-    board.columns[columnIndex].wipLimit = wipLimit;
-    board.columns[columnIndex].doneRule = doneRule;
+    if (doneRule !== undefined) {
+      board.columns[columnIndex].doneRule = doneRule;
+    }
 
     await board.save();
     res.status(200).json(board.columns[columnIndex]);

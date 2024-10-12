@@ -13,15 +13,20 @@ function ColumnSettings({ open, onClose, column, onSave }) {
   }, [column]);
 
   const handleSave = () => {
-    const wipLimitValue = wipLimit ? parseInt(wipLimit, 10) : null;
-    if (wipLimitValue < 1) {
-      alert('WIP Limit must be least 1.');
-      return;
+    const updatedData = {};
+    if (doneRule !== '') {
+      updatedData.doneRule = doneRule;
     }
-    onSave(column.id, {
-      doneRule,
-      wipLimit: wipLimitValue
-    });
+    if (wipLimit !== '') {
+      const wipLimitValue = parseInt(wipLimit, 10);
+      if (!isNaN(wipLimitValue) && wipLimitValue >= 1) {
+        updatedData.wipLimit = wipLimitValue;
+      } else if (wipLimitValue !== null) {
+        alert('WIP Limit must be at least 1.');
+        return;
+      }
+    }
+    onSave(column.id, updatedData);
     onClose();
   };
 
