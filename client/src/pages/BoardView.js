@@ -105,7 +105,7 @@ function BoardView({ darkMode }) {
   };
 
   const groupTasksByStatus = (tasks) => {
-    console.log('Grouping tasks:', tasks);
+    //console.log('Grouping tasks:', tasks);
     const grouped = columns.reduce((acc, column) => {
       if (column.hasSubsections) {
         acc[column.id] = { active: [], done: [] };
