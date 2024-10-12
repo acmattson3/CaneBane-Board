@@ -306,7 +306,8 @@ function BoardView({ darkMode }) {
       const response = await updateTask(id, updatedTask._id, {
         title: updatedTask.title,
         description: updatedTask.description,
-        status: updatedTask.status
+        status: updatedTask.status,
+        color: updatedTask.color
       });
       
       if (response.success) {
@@ -315,14 +316,14 @@ function BoardView({ darkMode }) {
           Object.keys(newTasks).forEach(column => {
             if (Array.isArray(newTasks[column])) {
               newTasks[column] = newTasks[column].map(task => 
-                task._id === updatedTask._id ? response.task : task
+                task._id === updatedTask._id ? { ...task, ...response.task } : task
               );
             } else if (newTasks[column].active && newTasks[column].done) {
               newTasks[column].active = newTasks[column].active.map(task => 
-                task._id === updatedTask._id ? response.task : task
+                task._id === updatedTask._id ? { ...task, ...response.task } : task
               );
               newTasks[column].done = newTasks[column].done.map(task => 
-                task._id === updatedTask._id ? response.task : task
+                task._id === updatedTask._id ? { ...task, ...response.task } : task
               );
             }
           });
@@ -383,7 +384,7 @@ function BoardView({ darkMode }) {
     };
 
     const taskColor = getTaskColor();
-    const isLightMode = !darkMode; // Assuming you have a darkMode state or prop
+    const isLightMode = !darkMode; 
 
     return (
       <Paper
@@ -726,6 +727,7 @@ function BoardView({ darkMode }) {
         onClose={() => setTaskDetailsOpen(false)}
         task={selectedTask}
         onUpdate={handleTaskUpdate}
+        darkMode={darkMode}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>

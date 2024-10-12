@@ -125,7 +125,7 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { boardId, taskId } = req.params;
-    const { title, description, status } = req.body;
+    const { title, description, status, color } = req.body;
 
     const board = await Board.findById(boardId);
     if (!board) {
@@ -137,15 +137,14 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Update the task
     board.tasks[taskIndex].title = title || board.tasks[taskIndex].title;
     board.tasks[taskIndex].description = description || board.tasks[taskIndex].description;
     board.tasks[taskIndex].status = status || board.tasks[taskIndex].status;
-    board.tasks[taskIndex].updatedAt = new Date();
+    board.tasks[taskIndex].color = color || board.tasks[taskIndex].color;
 
     await board.save();
 
-    res.json(board.tasks[taskIndex]);
+    res.json({ success: true, task: board.tasks[taskIndex] });
   } catch (error) {
     console.error('Error updating task:', error);
     res.status(500).json({ message: 'Error updating task', error: error.message });
