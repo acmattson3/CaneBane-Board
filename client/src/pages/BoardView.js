@@ -61,7 +61,7 @@ function BoardView({ darkMode }) {
 
     fetchBoard();
 
-    const intervalId = setInterval(fetchBoard, 5000); // Refresh every 5 seconds
+    const intervalId = setInterval(fetchBoard, 2000); // Refresh every 5 seconds
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
