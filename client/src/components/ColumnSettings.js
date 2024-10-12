@@ -16,6 +16,9 @@ function ColumnSettings({ open, onClose, column, onSave }) {
     const updatedData = {};
     if (doneRule !== '') {
       updatedData.doneRule = doneRule;
+    } else {
+      // If doneRule is empty, set it to an empty string to clear it
+      updatedData.doneRule = '';
     }
     if (wipLimit !== '') {
       const wipLimitValue = parseInt(wipLimit, 10);
