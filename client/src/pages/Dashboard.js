@@ -196,7 +196,7 @@ function Dashboard() {
                   startIcon={<VisibilityIcon />}
                   onClick={() => navigate(`/board/${board._id}`)}
                 >
-                  View
+                  View Board
                 </Button>
                 <IconButton
                   size="small"
