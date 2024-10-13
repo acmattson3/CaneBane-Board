@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Select, MenuItem, FormControl, InputLabel, useTheme } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 function TaskDetailsDialog({ open, onClose, task, onUpdate, onDelete, darkMode, boardMembers }) {
@@ -7,7 +7,6 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, onDelete, darkMode, 
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
-  const theme = useTheme();
 
   const colorPairs = [
     { name: 'Pink', light: '#FFD1DC', dark: '#d51a79' },

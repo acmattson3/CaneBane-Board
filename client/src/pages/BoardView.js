@@ -9,7 +9,6 @@ import { getBoard, createTask, updateTask, updateColumn, deleteTask, getBoardMem
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import PersonIcon from '@mui/icons-material/Person';
 
 // const getRandomColor = () => {
@@ -173,18 +172,6 @@ function BoardView({ darkMode }) {
     }
   };
 
-  const mapStatusToBackend = (frontendStatus) => {
-    const statusMap = {
-      'backlog': 'Backlog',
-      'specification-active': 'Specification Active',
-      'specification-done': 'Specification Done',
-      'implementation-active': 'Implementation Active',
-      'implementation-done': 'Implementation Done',
-      'test': 'Test',
-      'done': 'Done'
-    };
-    return statusMap[frontendStatus] || frontendStatus;
-  };
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
@@ -201,7 +188,6 @@ function BoardView({ darkMode }) {
     ) {
       const sourceColumnId = source.droppableId.split('-')[0];
       const destColumnId = destination.droppableId.split('-')[0];
-      const sourceColumn = columns.find(col => col.id === sourceColumnId);
       const destColumn = columns.find(col => col.id === destColumnId);
 
       // Check if the destination column has a WIP limit
@@ -267,7 +253,7 @@ function BoardView({ darkMode }) {
 
   // Helper function to remove a task from its current location
   const removeTaskFromCurrentLocation = (task, tasks) => {
-    for (const [columnId, columnTasks] of Object.entries(tasks)) {
+    for (const [columnTasks] of Object.entries(tasks)) {
       if (Array.isArray(columnTasks)) {
         const index = columnTasks.findIndex(t => t._id === task._id);
         if (index !== -1) {
