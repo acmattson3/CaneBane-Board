@@ -44,6 +44,9 @@ function Dashboard() {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const fetchedRef = useRef(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+  const [confirmBoardName, setConfirmBoardName] = useState('');
 
   const fetchBoards = useCallback(async () => {
     try {
@@ -79,7 +82,6 @@ function Dashboard() {
     }
   };
 
-
   const handleJoinBoard = async () => {
     try {
       setError('');
@@ -105,6 +107,40 @@ function Dashboard() {
       setSnackbar({
         open: true,
         message: 'Error deleting board',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleDeleteClick = (board) => {
+    setBoardToDelete(board);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (confirmBoardName === boardToDelete.name) {
+      try {
+        await deleteBoard(boardToDelete._id);
+        setBoards(prevBoards => prevBoards.filter(board => board._id !== boardToDelete._id));
+        setSnackbar({
+          open: true,
+          message: 'Board deleted successfully',
+          severity: 'success'
+        });
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: 'Error deleting board',
+          severity: 'error'
+        });
+      }
+      setDeleteDialogOpen(false);
+      setBoardToDelete(null);
+      setConfirmBoardName('');
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'Board name does not match',
         severity: 'error'
       });
     }
@@ -160,12 +196,12 @@ function Dashboard() {
                   startIcon={<VisibilityIcon />}
                   onClick={() => navigate(`/board/${board._id}`)}
                 >
-                  View Board
+                  View
                 </Button>
                 <IconButton
                   size="small"
                   color="error"
-                  onClick={() => handleDeleteBoard(board._id)}
+                  onClick={() => handleDeleteClick(board)}
                   sx={{
                     '&:hover': {
                       backgroundColor: 'error.light',
@@ -230,6 +266,34 @@ function Dashboard() {
           <Button onClick={handleJoinBoard}>Join</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Board Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To delete the board "{boardToDelete?.name}", please type the board name to confirm:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="confirmBoardName"
+            label="Board Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={confirmBoardName}
+            onChange={(e) => setConfirmBoardName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
