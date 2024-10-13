@@ -4,7 +4,6 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -13,12 +12,22 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  TextField
+  TextField,
+  Snackbar,
+  IconButton,
+  Box
 } from '@mui/material';
+import MuiAlert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import { getBoards, createBoard, joinBoard } from '../services/api';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { getBoards, createBoard, joinBoard, deleteBoard } from '../services/api';
 import { getCurrentUser } from '../services/auth';
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 function Dashboard() {
   const [boards, setBoards] = useState([]);
@@ -27,9 +36,17 @@ function Dashboard() {
   const [newBoardName, setNewBoardName] = useState('');
   const [boardCode, setBoardCode] = useState('');
   const [error, setError] = useState('');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const fetchedRef = useRef(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+  const [confirmBoardName, setConfirmBoardName] = useState('');
 
   const fetchBoards = useCallback(async () => {
     try {
@@ -77,6 +94,58 @@ function Dashboard() {
     }
   };
 
+  const handleDeleteBoard = async (boardId) => {
+    try {
+      await deleteBoard(boardId);
+      setBoards(prevBoards => prevBoards.filter(board => board._id !== boardId));
+      setSnackbar({
+        open: true,
+        message: 'Board deleted successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Error deleting board',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleDeleteClick = (board) => {
+    setBoardToDelete(board);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (confirmBoardName === boardToDelete.name) {
+      try {
+        await deleteBoard(boardToDelete._id);
+        setBoards(prevBoards => prevBoards.filter(board => board._id !== boardToDelete._id));
+        setSnackbar({
+          open: true,
+          message: 'Board deleted successfully',
+          severity: 'success'
+        });
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: 'Error deleting board',
+          severity: 'error'
+        });
+      }
+      setDeleteDialogOpen(false);
+      setBoardToDelete(null);
+      setConfirmBoardName('');
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'Board name does not match',
+        severity: 'error'
+      });
+    }
+  };
+
   console.log('Current boards state:', boards);
 
   if (!currentUser) {
@@ -85,13 +154,11 @@ function Dashboard() {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Grid item>
-          <Typography variant="h4" component="h1">
-            Your Boards
-          </Typography>
-        </Grid>
-        <Grid item>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Your Boards
+        </Typography>
+        <Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -107,31 +174,48 @@ function Dashboard() {
           >
             Join Board
           </Button>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
       )}
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
         {boards.map(board => (
-          <Grid item xs={12} sm={6} md={4} key={board._id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" component="h2">
+          <Box key={board._id} sx={{ width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(33.333% - 16px)' } }}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h5" component="h2" gutterBottom>
                   {board.name}
                 </Typography>
               </CardContent>
-              <CardActions>
-                <Button size="small" onClick={() => navigate(`/board/${board._id}`)}>
-                  View Board
+              <CardActions sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, pb: 2 }}>
+                <Button
+                  size="small"
+                  startIcon={<VisibilityIcon />}
+                  onClick={() => navigate(`/board/${board._id}`)}
+                >
+                  View
                 </Button>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => handleDeleteClick(board)}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: 'error.light',
+                      color: 'error.contrastText',
+                    },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
               </CardActions>
             </Card>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* Create Board Dialog */}
       <Dialog open={openCreateDialog} onClose={() => setOpenCreateDialog(false)}>
@@ -182,6 +266,43 @@ function Dashboard() {
           <Button onClick={handleJoinBoard}>Join</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Board Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To delete the board "{boardToDelete?.name}", please type the board name to confirm:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="confirmBoardName"
+            label="Board Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={confirmBoardName}
+            onChange={(e) => setConfirmBoardName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

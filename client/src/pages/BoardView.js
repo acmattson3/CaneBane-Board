@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert, Chip } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert, Chip, Avatar } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
-import { getBoard, createTask, updateTask, updateColumn } from '../services/api';
+import { getBoard, createTask, updateTask, updateColumn, deleteTask, getBoardMembers } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import PersonIcon from '@mui/icons-material/Person';
 
 // const getRandomColor = () => {
 //   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
@@ -39,6 +39,7 @@ function BoardView({ darkMode }) {
     message: '',
     severity: 'info'
   });
+  const [boardMembers, setBoardMembers] = useState([]);
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -54,6 +55,10 @@ function BoardView({ darkMode }) {
           return fetchedCol ? { ...col, ...fetchedCol } : col;
         });
         setColumns(updatedColumns);
+
+        // Fetch board members
+        const membersData = await getBoardMembers(id);
+        setBoardMembers(membersData);
       } catch (error) {
         console.error('Error fetching board:', error);
       }
@@ -65,6 +70,7 @@ function BoardView({ darkMode }) {
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
+
 
   const handleColumnSettingsClick = (column) => {
     setSelectedColumn(column);
@@ -104,6 +110,7 @@ function BoardView({ darkMode }) {
     return taskCount > column.wipLimit;
   };
 
+
   const groupTasksByStatus = (tasks) => {
     //console.log('Grouping tasks:', tasks);
     const grouped = columns.reduce((acc, column) => {
@@ -132,6 +139,7 @@ function BoardView({ darkMode }) {
         grouped['backlog'].push(task);
       }
     });
+
 
     return grouped;
   };
@@ -164,18 +172,6 @@ function BoardView({ darkMode }) {
     }
   };
 
-  const mapStatusToBackend = (frontendStatus) => {
-    const statusMap = {
-      'backlog': 'Backlog',
-      'specification-active': 'Specification Active',
-      'specification-done': 'Specification Done',
-      'implementation-active': 'Implementation Active',
-      'implementation-done': 'Implementation Done',
-      'test': 'Test',
-      'done': 'Done'
-    };
-    return statusMap[frontendStatus] || frontendStatus;
-  };
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
@@ -192,7 +188,6 @@ function BoardView({ darkMode }) {
     ) {
       const sourceColumnId = source.droppableId.split('-')[0];
       const destColumnId = destination.droppableId.split('-')[0];
-      const sourceColumn = columns.find(col => col.id === sourceColumnId);
       const destColumn = columns.find(col => col.id === destColumnId);
 
       // Check if the destination column has a WIP limit
@@ -221,7 +216,7 @@ function BoardView({ darkMode }) {
 
         // Update local state
         setTasks(prevTasks => {
-          const updatedTasks = { ...prevTasks };
+          const updatedTasks = JSON.parse(JSON.stringify(prevTasks)); // Deep clone
           const task = findTaskById(taskId, updatedTasks);
 
           if (task) {
@@ -248,7 +243,7 @@ function BoardView({ darkMode }) {
         if (task) return task;
       } else if (columnTasks.active || columnTasks.done) {
         const task = columnTasks.active.find(t => t._id === taskId) || columnTasks.done.find(t => t._id === taskId);
-        if (task) return task;
+        if (task) return { ...task }; // Return a copy of the task
       }
     }
     return null;
@@ -296,6 +291,7 @@ function BoardView({ darkMode }) {
     return columnId.charAt(0).toUpperCase() + columnId.slice(1);
   };
 
+
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setTaskDetailsOpen(true);
@@ -307,7 +303,8 @@ function BoardView({ darkMode }) {
         title: updatedTask.title,
         description: updatedTask.description,
         status: updatedTask.status,
-        color: updatedTask.color
+        color: updatedTask.color,
+        assignedTo: updatedTask.assignedTo
       });
       
       if (response.success) {
@@ -335,6 +332,36 @@ function BoardView({ darkMode }) {
       }
     } catch (error) {
       console.error('Error updating task:', error);
+    }
+  };
+
+  const handleTaskDelete = async (taskId) => {
+    try {
+      await deleteTask(board._id, taskId);
+      setTasks(prevTasks => {
+        const newTasks = { ...prevTasks };
+        Object.keys(newTasks).forEach(column => {
+          if (Array.isArray(newTasks[column])) {
+            newTasks[column] = newTasks[column].filter(task => task._id !== taskId);
+          } else if (newTasks[column].active && newTasks[column].done) {
+            newTasks[column].active = newTasks[column].active.filter(task => task._id !== taskId);
+            newTasks[column].done = newTasks[column].done.filter(task => task._id !== taskId);
+          }
+        });
+        return newTasks;
+      });
+      setSnackbar({
+        open: true,
+        message: 'Task deleted successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error deleting task',
+        severity: 'error'
+      });
     }
   };
 
@@ -386,6 +413,8 @@ function BoardView({ darkMode }) {
     const taskColor = getTaskColor();
     const isLightMode = !darkMode; 
 
+    const assignedMember = boardMembers.find(member => member._id === task.assignedTo);
+
     return (
       <Paper
         ref={provided.innerRef}
@@ -432,6 +461,22 @@ function BoardView({ darkMode }) {
           >
             {task.description}
           </Typography>
+        )}
+        {assignedMember && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+            <Tooltip title={`Assigned to: ${assignedMember.name || assignedMember.email}`}>
+              <Avatar
+                sx={{
+                  width: 24,
+                  height: 24,
+                  fontSize: '0.75rem',
+                  bgcolor: isLightMode ? 'primary.main' : 'primary.dark',
+                }}
+              >
+                {assignedMember.name ? assignedMember.name[0].toUpperCase() : <PersonIcon />}
+              </Avatar>
+            </Tooltip>
+          </Box>
         )}
       </Paper>
     );
@@ -727,7 +772,9 @@ function BoardView({ darkMode }) {
         onClose={() => setTaskDetailsOpen(false)}
         task={selectedTask}
         onUpdate={handleTaskUpdate}
+        onDelete={handleTaskDelete}
         darkMode={darkMode}
+        boardMembers={boardMembers}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Select, MenuItem, useTheme } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
+function TaskDetailsDialog({ open, onClose, task, onUpdate, onDelete, darkMode, boardMembers }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('');
-  const theme = useTheme();
+  const [assignedTo, setAssignedTo] = useState('');
 
   const colorPairs = [
     { name: 'Pink', light: '#FFD1DC', dark: '#d51a79' },
@@ -15,24 +16,25 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
     { name: 'Yellow', light: '#ffeb00', dark: '#e88408' },
   ];
 
+
   useEffect(() => {
     if (task) {
       setTitle(task.title);
       setDescription(task.description || '');
-      // Find the matching color pair or default to the first one
       const colorPair = colorPairs.find(cp => cp.light === task.color || cp.dark === task.color) || colorPairs[0];
       setColor(darkMode ? colorPair.dark : colorPair.light);
+      setAssignedTo(task.assignedTo || '');
     }
   }, [task, darkMode]);
 
   const handleSave = () => {
-    onUpdate({ ...task, title, description, color });
+    onUpdate({ ...task, title, description, color, assignedTo });
     onClose();
   };
 
-  const getColorName = (colorValue) => {
-    const colorPair = colorPairs.find(cp => cp.light === colorValue || cp.dark === colorValue);
-    return colorPair ? colorPair.name : 'Unknown';
+  const handleDelete = () => {
+    onDelete(task._id);
+    onClose();
   };
 
   return (
@@ -79,13 +81,38 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
             </MenuItem>
           ))}
         </Select>
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Assign To</InputLabel>
+          <Select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            label="Assign To"
+          >
+            <MenuItem value="">
+              <em>Unassigned</em>
+            </MenuItem>
+            {boardMembers.map((member) => (
+              <MenuItem key={member._id} value={member._id}>
+                {member.name || member.email}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave}>Save</Button>
+        <Button 
+          onClick={handleDelete} 
+          color="error" 
+          startIcon={<DeleteIcon />}
+        >
+          Delete
+        </Button>
       </DialogActions>
     </Dialog>
   );
 }
+
 
 export default TaskDetailsDialog;
