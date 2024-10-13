@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Select, MenuItem, useTheme } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
+function TaskDetailsDialog({ open, onClose, task, onUpdate, onDelete, darkMode }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('');
@@ -33,6 +34,11 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
   const getColorName = (colorValue) => {
     const colorPair = colorPairs.find(cp => cp.light === colorValue || cp.dark === colorValue);
     return colorPair ? colorPair.name : 'Unknown';
+  };
+
+  const handleDelete = () => {
+    onDelete(task._id);
+    onClose();
   };
 
   return (
@@ -83,6 +89,13 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, darkMode }) {
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave}>Save</Button>
+        <Button 
+          onClick={handleDelete} 
+          color="error" 
+          startIcon={<DeleteIcon />}
+        >
+          Delete
+        </Button>
       </DialogActions>
     </Dialog>
   );

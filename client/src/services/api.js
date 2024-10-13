@@ -94,3 +94,13 @@ export const updateColumn = async (boardId, columnId, updatedData) => {
     throw error;
   }
 };
+
+export const deleteTask = async (boardId, taskId) => {
+  try {
+    const response = await apiClient.delete(`/boards/${boardId}/tasks/${taskId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
+};

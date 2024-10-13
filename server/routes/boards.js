@@ -8,7 +8,8 @@ const {
   createTask,
   updateTask,
   joinBoard,
-  updateColumn
+  updateColumn,
+  deleteTask
 } = require('../controllers/boardController');
 const auth = require('../middleware/auth');
 
@@ -26,5 +27,6 @@ router.post('/:id/tasks', auth, createTask);
 router.put('/:boardId/tasks/:taskId', auth, updateTask);
 router.post('/join', auth, joinBoard);
 router.put('/:boardId/columns/:columnId', auth, updateColumn);
+router.delete('/:boardId/tasks/:taskId', auth, deleteTask);
 
 module.exports = router;

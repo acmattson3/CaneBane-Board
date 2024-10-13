@@ -206,3 +206,27 @@ exports.updateColumn = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.deleteTask = async (req, res) => {
+  try {
+    const { boardId, taskId } = req.params;
+
+    const board = await Board.findById(boardId);
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+
+    const taskIndex = board.tasks.findIndex(task => task._id.toString() === taskId);
+    if (taskIndex === -1) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    board.tasks.splice(taskIndex, 1);
+    await board.save();
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: 'Error deleting task', error: error.message });
+  }
+};

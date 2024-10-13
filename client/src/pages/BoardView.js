@@ -5,7 +5,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
-import { getBoard, createTask, updateTask, updateColumn } from '../services/api';
+import { getBoard, createTask, updateTask, updateColumn, deleteTask } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -335,6 +335,36 @@ function BoardView({ darkMode }) {
       }
     } catch (error) {
       console.error('Error updating task:', error);
+    }
+  };
+
+  const handleTaskDelete = async (taskId) => {
+    try {
+      await deleteTask(board._id, taskId);
+      setTasks(prevTasks => {
+        const newTasks = { ...prevTasks };
+        Object.keys(newTasks).forEach(column => {
+          if (Array.isArray(newTasks[column])) {
+            newTasks[column] = newTasks[column].filter(task => task._id !== taskId);
+          } else if (newTasks[column].active && newTasks[column].done) {
+            newTasks[column].active = newTasks[column].active.filter(task => task._id !== taskId);
+            newTasks[column].done = newTasks[column].done.filter(task => task._id !== taskId);
+          }
+        });
+        return newTasks;
+      });
+      setSnackbar({
+        open: true,
+        message: 'Task deleted successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error deleting task',
+        severity: 'error'
+      });
     }
   };
 
@@ -727,6 +757,7 @@ function BoardView({ darkMode }) {
         onClose={() => setTaskDetailsOpen(false)}
         task={selectedTask}
         onUpdate={handleTaskUpdate}
+        onDelete={handleTaskDelete}
         darkMode={darkMode}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
