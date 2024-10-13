@@ -7,6 +7,7 @@ const apiClient = axios.create({
   baseURL: API_URL,
 });
 
+
 apiClient.interceptors.request.use(
   (config) => {
     const user = getCurrentUser();
@@ -101,6 +102,16 @@ export const deleteTask = async (boardId, taskId) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting task:', error);
+    throw error;
+  }
+};
+
+export const deleteBoard = async (boardId) => {
+  try {
+    const response = await apiClient.delete(`/boards/${boardId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting board:', error);
     throw error;
   }
 };
