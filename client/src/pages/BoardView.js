@@ -216,7 +216,7 @@ function BoardView({ darkMode }) {
 
         // Update local state
         setTasks(prevTasks => {
-          const updatedTasks = { ...prevTasks };
+          const updatedTasks = JSON.parse(JSON.stringify(prevTasks)); // Deep clone
           const task = findTaskById(taskId, updatedTasks);
 
           if (task) {
@@ -226,7 +226,6 @@ function BoardView({ darkMode }) {
             // Add the task to its new location
             addTaskToNewLocation(task, newStatus, destination.index, updatedTasks);
           }
-
 
           return updatedTasks;
         });
@@ -244,16 +243,15 @@ function BoardView({ darkMode }) {
         if (task) return task;
       } else if (columnTasks.active || columnTasks.done) {
         const task = columnTasks.active.find(t => t._id === taskId) || columnTasks.done.find(t => t._id === taskId);
-        if (task) return task;
+        if (task) return { ...task }; // Return a copy of the task
       }
     }
     return null;
   };
 
-
   // Helper function to remove a task from its current location
   const removeTaskFromCurrentLocation = (task, tasks) => {
-    for (const [columnTasks] of Object.entries(tasks)) {
+    for (const [columnId, columnTasks] of Object.entries(tasks)) {
       if (Array.isArray(columnTasks)) {
         const index = columnTasks.findIndex(t => t._id === task._id);
         if (index !== -1) {
