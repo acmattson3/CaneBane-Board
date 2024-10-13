@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert, Chip } from '@mui/material';
+import { Container, Typography, Button, Box, Paper, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, IconButton, Snackbar, Alert, Chip, Avatar } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
-import { getBoard, createTask, updateTask, updateColumn, deleteTask } from '../services/api';
+import { getBoard, createTask, updateTask, updateColumn, deleteTask, getBoardMembers } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import PersonIcon from '@mui/icons-material/Person';
 
 // const getRandomColor = () => {
 //   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
@@ -39,6 +40,7 @@ function BoardView({ darkMode }) {
     message: '',
     severity: 'info'
   });
+  const [boardMembers, setBoardMembers] = useState([]);
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -54,6 +56,10 @@ function BoardView({ darkMode }) {
           return fetchedCol ? { ...col, ...fetchedCol } : col;
         });
         setColumns(updatedColumns);
+
+        // Fetch board members
+        const membersData = await getBoardMembers(id);
+        setBoardMembers(membersData);
       } catch (error) {
         console.error('Error fetching board:', error);
       }
@@ -65,6 +71,7 @@ function BoardView({ darkMode }) {
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
+
 
   const handleColumnSettingsClick = (column) => {
     setSelectedColumn(column);
@@ -104,6 +111,7 @@ function BoardView({ darkMode }) {
     return taskCount > column.wipLimit;
   };
 
+
   const groupTasksByStatus = (tasks) => {
     //console.log('Grouping tasks:', tasks);
     const grouped = columns.reduce((acc, column) => {
@@ -132,6 +140,7 @@ function BoardView({ darkMode }) {
         grouped['backlog'].push(task);
       }
     });
+
 
     return grouped;
   };
@@ -232,6 +241,7 @@ function BoardView({ darkMode }) {
             addTaskToNewLocation(task, newStatus, destination.index, updatedTasks);
           }
 
+
           return updatedTasks;
         });
       } catch (error) {
@@ -253,6 +263,7 @@ function BoardView({ darkMode }) {
     }
     return null;
   };
+
 
   // Helper function to remove a task from its current location
   const removeTaskFromCurrentLocation = (task, tasks) => {
@@ -296,6 +307,7 @@ function BoardView({ darkMode }) {
     return columnId.charAt(0).toUpperCase() + columnId.slice(1);
   };
 
+
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setTaskDetailsOpen(true);
@@ -307,7 +319,8 @@ function BoardView({ darkMode }) {
         title: updatedTask.title,
         description: updatedTask.description,
         status: updatedTask.status,
-        color: updatedTask.color
+        color: updatedTask.color,
+        assignedTo: updatedTask.assignedTo
       });
       
       if (response.success) {
@@ -416,6 +429,8 @@ function BoardView({ darkMode }) {
     const taskColor = getTaskColor();
     const isLightMode = !darkMode; 
 
+    const assignedMember = boardMembers.find(member => member._id === task.assignedTo);
+
     return (
       <Paper
         ref={provided.innerRef}
@@ -462,6 +477,22 @@ function BoardView({ darkMode }) {
           >
             {task.description}
           </Typography>
+        )}
+        {assignedMember && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+            <Tooltip title={`Assigned to: ${assignedMember.name || assignedMember.email}`}>
+              <Avatar
+                sx={{
+                  width: 24,
+                  height: 24,
+                  fontSize: '0.75rem',
+                  bgcolor: isLightMode ? 'primary.main' : 'primary.dark',
+                }}
+              >
+                {assignedMember.name ? assignedMember.name[0].toUpperCase() : <PersonIcon />}
+              </Avatar>
+            </Tooltip>
+          </Box>
         )}
       </Paper>
     );
@@ -759,6 +790,7 @@ function BoardView({ darkMode }) {
         onUpdate={handleTaskUpdate}
         onDelete={handleTaskDelete}
         darkMode={darkMode}
+        boardMembers={boardMembers}
       />
       <Dialog open={openNewTaskDialog} onClose={() => setOpenNewTaskDialog(false)}>
         <DialogTitle>Create New Task</DialogTitle>

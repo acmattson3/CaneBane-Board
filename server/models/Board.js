@@ -65,7 +65,7 @@ const boardSchema = new mongoose.Schema({
     ref: 'User'
   }],
   tasks: [taskSchema],
-  columns: [columnSchema], // Add this line
+  columns: [columnSchema],
   code: {
     type: String,
     unique: true,

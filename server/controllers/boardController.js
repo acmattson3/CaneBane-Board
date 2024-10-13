@@ -31,30 +31,28 @@ exports.getBoard = async (req, res) => {
 
 exports.createBoard = async (req, res) => {
   try {
-    console.log('Received board creation request:', req.body);
-    const { name, owner, columns } = req.body;
-    
-    if (!name || !owner || !columns) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-    
+    const { name } = req.body;
+    const owner = req.user.id;
+
     const board = new Board({
       name,
       owner,
-      columns: columns.map(column => ({
-        ...column,
-        wipLimit: column.wipLimit || null,
-        doneRule: column.doneRule || ''
-      }))
+      members: [owner], // Add the owner to the members list
+      columns: [
+        { id: 'backlog', title: 'Backlog', hasSubsections: false, allowWipLimit: false },
+        { id: 'specification', title: 'Specification', hasSubsections: true, allowWipLimit: true },
+        { id: 'implementation', title: 'Implementation', hasSubsections: true, allowWipLimit: true },
+        { id: 'test', title: 'Test', hasSubsections: false, allowWipLimit: true },
+        { id: 'done', title: 'Done', hasSubsections: false, allowWipLimit: false }
+      ]
     });
-    
-    console.log('Creating board:', board);
+
     await board.save();
-    console.log('Board created successfully');
+
     res.status(201).json(board);
   } catch (error) {
     console.error('Error creating board:', error);
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: 'Error creating board', error: error.message });
   }
 };
 
@@ -125,7 +123,7 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { boardId, taskId } = req.params;
-    const { title, description, status, color } = req.body;
+    const { title, description, status, color, assignedTo } = req.body;
 
     const board = await Board.findById(boardId);
     if (!board) {
@@ -141,6 +139,7 @@ exports.updateTask = async (req, res) => {
     board.tasks[taskIndex].description = description || board.tasks[taskIndex].description;
     board.tasks[taskIndex].status = status || board.tasks[taskIndex].status;
     board.tasks[taskIndex].color = color || board.tasks[taskIndex].color;
+    board.tasks[taskIndex].assignedTo = assignedTo || board.tasks[taskIndex].assignedTo;
 
     await board.save();
 
@@ -150,6 +149,7 @@ exports.updateTask = async (req, res) => {
     res.status(500).json({ message: 'Error updating task', error: error.message });
   }
 };
+
 
 exports.joinBoard = async (req, res) => {
   try {
@@ -228,5 +228,19 @@ exports.deleteTask = async (req, res) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ message: 'Error deleting task', error: error.message });
+  }
+};
+
+exports.getBoardMembers = async (req, res) => {
+  try {
+    const { boardId } = req.params;
+    const board = await Board.findById(boardId).populate('members', '_id name email');
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+    res.json(board.members);
+  } catch (error) {
+    console.error('Error fetching board members:', error);
+    res.status(500).json({ message: 'Error fetching board members', error: error.message });
   }
 };

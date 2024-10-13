@@ -8,6 +8,8 @@ const apiClient = axios.create({
 });
 
 
+
+
 apiClient.interceptors.request.use(
   (config) => {
     const user = getCurrentUser();
@@ -18,6 +20,7 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
 
 export const getBoards = async () => {
   const response = await apiClient.get('/boards');
@@ -47,6 +50,7 @@ export const createBoard = async (name) => {
   const response = await apiClient.post('/boards', boardData);
   return response.data;
 };
+
 
 export const joinBoard = async (code) => {
   try {
@@ -112,6 +116,16 @@ export const deleteBoard = async (boardId) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting board:', error);
+    throw error;
+  }
+};
+
+export const getBoardMembers = async (boardId) => {
+  try {
+    const response = await apiClient.get(`/boards/${boardId}/members`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching board members:', error);
     throw error;
   }
 };
