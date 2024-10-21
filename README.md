@@ -2,6 +2,8 @@
 
 CaneBane is a Kanban board application that helps you manage your tasks and projects efficiently. This README will guide you through the setup process and how to use the application.
 
+![Welcome to CaneBane](client/src/welcome.png)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed on your system:
