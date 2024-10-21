@@ -58,6 +58,12 @@ Before you begin, ensure you have the following installed on your system:
    - Drag and drop tasks between columns
    - Update task status
    - View and edit task details
+   - Assign tasks to other users of the board
+   - Change to Dark Mode
+   - Change color of a task
+   - Delete a task or a board
+   - Set WIP Limit for Column
+   - Create a done rule for a column
 
 ## Project Structure
 
