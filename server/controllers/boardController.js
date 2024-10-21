@@ -1,39 +1,43 @@
-const Board = require('../models/Board');
-const mongoose = require('mongoose');
+const Board = require('../models/Board'); // Import the Board model for database operations
+const mongoose = require('mongoose'); // Import mongoose for ObjectId handling
 
+// Function to get all boards for the current user
 exports.getBoards = async (req, res) => {
   try {
+    // Find boards where the user is either the owner or a member
     const boards = await Board.find({ $or: [{ owner: req.user.id }, { members: req.user.id }] });
-    res.json(boards);
+    res.json(boards); // Respond with the list of boards
   } catch (error) {
-    console.error('Error fetching boards:', error);
-    res.status(500).json({ message: 'Error fetching boards', error: error.message });
+    console.error('Error fetching boards:', error); // Log error
+    res.status(500).json({ message: 'Error fetching boards', error: error.message }); // Return server error
   }
 };
 
+// Function to get a specific board by ID
 exports.getBoard = async (req, res) => {
   try {
-    const board = await Board.findById(req.params.id);
+    const board = await Board.findById(req.params.id); // Find board by ID
     if (!board) {
-      console.error(`Board not found: ${req.params.id}`); // Log only the ID if not found
-      return res.status(404).json({ message: 'Board not found' });
+      console.error(`Board not found: ${req.params.id}`); // Log if board not found
+      return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }
     
     // Log a success message without the board contents
-    console.log(`Board loaded successfully: ${board.name} (ID: ${board._id})`); // Log only the name and ID
-
-    res.json(board);
+    console.log(`Board loaded successfully: ${board.name} (ID: ${board._id})`); // Log board name and ID
+    res.json(board); // Respond with the board data
   } catch (error) {
-    console.error('Error fetching board:', error.message);
-    res.status(500).json({ message: 'Error fetching board' });
+    console.error('Error fetching board:', error.message); // Log error
+    res.status(500).json({ message: 'Error fetching board' }); // Return server error
   }
 };
 
+// Function to create a new board
 exports.createBoard = async (req, res) => {
   try {
-    const { name } = req.body;
-    const owner = req.user.id;
+    const { name } = req.body; // Destructure board name from request body
+    const owner = req.user.id; // Get the ID of the board owner
 
+    // Create a new board instance with default columns
     const board = new Board({
       name,
       owner,
@@ -47,200 +51,154 @@ exports.createBoard = async (req, res) => {
       ]
     });
 
-    await board.save();
-
-    res.status(201).json(board);
+    await board.save(); // Save the new board to the database
+    res.status(201).json(board); // Respond with the created board
   } catch (error) {
-    console.error('Error creating board:', error);
-    res.status(500).json({ message: 'Error creating board', error: error.message });
+    console.error('Error creating board:', error); // Log error
+    res.status(500).json({ message: 'Error creating board', error: error.message }); // Return server error
   }
 };
 
+// Function to update an existing board
 exports.updateBoard = async (req, res) => {
   try {
-    const { boardId } = req.params;
-    const { columns } = req.body;
+    const { boardId } = req.params; // Get board ID from request parameters
+    const { columns } = req.body; // Get updated columns from request body
 
-    const board = await Board.findById(boardId);
+    const board = await Board.findById(boardId); // Find board by ID
     if (!board) {
-      return res.status(404).json({ error: 'Board not found' });
+      return res.status(404).json({ error: 'Board not found' }); // Return not found error
     }
 
+    // Update board columns with new data
     board.columns = columns.map(column => ({
       ...column,
-      wipLimit: column.wipLimit || null,
-      doneRule: column.doneRule || ''
+      wipLimit: column.wipLimit || null, // Set WIP limit or null if not provided
+      doneRule: column.doneRule || '' // Set done rule or empty string if not provided
     }));
 
-    await board.save();
-    res.status(200).json(board);
+    await board.save(); // Save the updated board
+    res.status(200).json(board); // Respond with the updated board
   } catch (error) {
-    console.error('Error updating board:', error.message);
-    res.status(400).json({ error: 'Update failed' });
+    console.error('Error updating board:', error.message); // Log error
+    res.status(400).json({ error: 'Update failed' }); // Return bad request error
   }
 };
 
+// Function to delete a board
 exports.deleteBoard = async (req, res) => {
   try {
+    // Find and delete the board by ID and ensure the user is the owner
     const board = await Board.findOneAndDelete({ _id: req.params.id, owner: req.user.id });
     if (!board) {
-      return res.status(404).json({ message: 'Board not found or permission denied' });
+      return res.status(404).json({ message: 'Board not found or permission denied' }); // Return not found or permission error
     }
-    res.json({ message: 'Board deleted successfully' });
+    res.json({ message: 'Board deleted successfully' }); // Respond with success message
   } catch (error) {
-    console.error('Error deleting board:', error.message);
-    res.status(500).json({ message: 'Deletion failed' });
+    console.error('Error deleting board:', error.message); // Log error
+    res.status(500).json({ message: 'Deletion failed' }); // Return server error
   }
 };
 
+// Function to create a new task in a specific board
 exports.createTask = async (req, res) => {
   try {
-    const { id } = req.params; // board id
-    const { title, status, color } = req.body;
+    const { id } = req.params; // Get board ID from request parameters
+    const { title, status, color } = req.body; // Destructure task data from request body
     
-    const board = await Board.findById(id);
+    const board = await Board.findById(id); // Find board by ID
     if (!board) {
-      return res.status(404).json({ message: 'Board not found' });
+      return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }
 
+    // Create a new task object
     const newTask = {
-      _id: new mongoose.Types.ObjectId().toString(),
+      _id: new mongoose.Types.ObjectId().toString(), // Generate a new ObjectId for the task
       title,
-      status: status || 'Backlog',
-      color: color || '#' + Math.floor(Math.random()*16777215).toString(16)
+      status: status || 'Backlog', // Default status is 'Backlog'
+      color: color || '#' + Math.floor(Math.random()*16777215).toString(16) // Generate a random color if not provided
     };
 
-    board.tasks.push(newTask);
-    await board.save();
+    board.tasks.push(newTask); // Add the new task to the board's tasks
+    await board.save(); // Save the updated board
 
-    res.status(201).json(newTask);
+    res.status(201).json(newTask); // Respond with the created task
   } catch (error) {
-    console.error('Error creating task:', error);
-    res.status(500).json({ message: 'Error creating task', error: error.message });
+    console.error('Error creating task:', error); // Log error
+    res.status(500).json({ message: 'Error creating task', error: error.message }); // Return server error
   }
 };
 
+// Function to update an existing task in a specific board
 exports.updateTask = async (req, res) => {
   try {
-    const { boardId, taskId } = req.params;
-    const { title, description, status, color, assignedTo } = req.body;
+    const { boardId, taskId } = req.params; // Get board ID and task ID from request parameters
+    const { title, description, status, color, assignedTo } = req.body; // Destructure task data from request body
 
-    const board = await Board.findById(boardId);
+    const board = await Board.findById(boardId); // Find board by ID
     if (!board) {
-      return res.status(404).json({ message: 'Board not found' });
+      return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }
 
+    // Find the index of the task to update
     const taskIndex = board.tasks.findIndex(task => task._id.toString() === taskId);
     if (taskIndex === -1) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found' }); // Return not found error if task does not exist
     }
 
+    // Update task properties with new data
     board.tasks[taskIndex].title = title || board.tasks[taskIndex].title;
     board.tasks[taskIndex].description = description || board.tasks[taskIndex].description;
     board.tasks[taskIndex].status = status || board.tasks[taskIndex].status;
     board.tasks[taskIndex].color = color || board.tasks[taskIndex].color;
     board.tasks[taskIndex].assignedTo = assignedTo || board.tasks[taskIndex].assignedTo;
 
-    await board.save();
+    await board.save(); // Save the updated board
 
-    res.json({ success: true, task: board.tasks[taskIndex] });
+    res.json({ success: true, task: board.tasks[taskIndex] }); // Respond with success status and updated task
   } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ message: 'Error updating task', error: error.message });
+    console.error('Error updating task:', error); // Log error
+    res.status(500).json({ message: 'Error updating task', error: error.message }); // Return server error
   }
 };
 
-
-exports.joinBoard = async (req, res) => {
-  try {
-    const { code } = req.body;
-    const board = await Board.findOne({ code });
-
-    if (!board) {
-      return res.status(404).json({ message: 'Board not found' });
-    }
-
-    if (board.members.includes(req.user.id)) {
-      return res.status(400).json({ message: 'You are already a member of this board' });
-    }
-
-    board.members.push(req.user.id);
-    await board.save();
-
-    res.json(board);
-  } catch (error) {
-    console.error('Error joining board:', error);
-    res.status(500).json({ message: 'Error joining board', error: error.message });
-  }
-};
-
-exports.updateColumn = async (req, res) => {
-  try {
-    const { boardId, columnId } = req.params;
-    const { wipLimit, doneRule } = req.body;
-
-    const board = await Board.findById(boardId);
-    if (!board) {
-      return res.status(404).json({ error: 'Board not found' });
-    }
-
-    const columnIndex = board.columns.findIndex(col => col.id === columnId);
-    if (columnIndex === -1) {
-      return res.status(404).json({ error: 'Column not found' });
-    }
-
-    if (wipLimit !== undefined) {
-      if (wipLimit !== null && wipLimit < 1) {
-        return res.status(400).json({ error: 'WIP Limit must be at least 1' });
-      }
-      board.columns[columnIndex].wipLimit = wipLimit;
-    }
-
-    if (doneRule !== undefined) {
-      board.columns[columnIndex].doneRule = doneRule;
-    }
-
-    await board.save();
-    res.status(200).json(board.columns[columnIndex]);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
+// Function to delete a task from a specific board
 exports.deleteTask = async (req, res) => {
   try {
-    const { boardId, taskId } = req.params;
+    const { boardId, taskId } = req.params; // Get board ID and task ID from request parameters
 
-    const board = await Board.findById(boardId);
+    const board = await Board.findById(boardId); // Find board by ID
     if (!board) {
-      return res.status(404).json({ message: 'Board not found' });
+      return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }
 
+    // Find the index of the task to delete
     const taskIndex = board.tasks.findIndex(task => task._id.toString() === taskId);
     if (taskIndex === -1) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found' }); // Return not found error if task does not exist
     }
 
-    board.tasks.splice(taskIndex, 1);
-    await board.save();
+    board.tasks.splice(taskIndex, 1); // Remove the task from the board's tasks
+    await board.save(); // Save the updated board
 
-    res.json({ message: 'Task deleted successfully' });
+    res.json({ message: 'Task deleted successfully' }); // Respond with success message
   } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Error deleting task', error: error.message });
+    console.error('Error deleting task:', error); // Log error
+    res.status(500).json({ message: 'Error deleting task', error: error.message }); // Return server error
   }
 };
 
+// Function to get members of a specific board
 exports.getBoardMembers = async (req, res) => {
   try {
-    const { boardId } = req.params;
-    const board = await Board.findById(boardId).populate('members', '_id name email');
+    const { boardId } = req.params; // Get board ID from request parameters
+    const board = await Board.findById(boardId).populate('members', '_id name email'); // Find board and populate members' data
     if (!board) {
-      return res.status(404).json({ message: 'Board not found' });
+      return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }
-    res.json(board.members);
+    res.json(board.members); // Respond with the list of board members
   } catch (error) {
-    console.error('Error fetching board members:', error);
-    res.status(500).json({ message: 'Error fetching board members', error: error.message });
+    console.error('Error fetching board members:', error); // Log error
+    res.status(500).json({ message: 'Error fetching board members', error: error.message }); // Return server error
   }
 };

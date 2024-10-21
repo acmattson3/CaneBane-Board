@@ -11,12 +11,10 @@ import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
 import PersonIcon from '@mui/icons-material/Person';
 
-// const getRandomColor = () => {
-//   const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA'];
-//   return colors[Math.floor(Math.random() * colors.length)];
-// };
+
 
 function BoardView({ darkMode }) {
+  // State variables for board, tasks, dialogs, snackbar, etc.
   const [board, setBoard] = useState(null);
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
@@ -33,20 +31,21 @@ function BoardView({ darkMode }) {
     { id: 'test', title: 'Test', hasSubsections: false, allowWipLimit: true },
     { id: 'done', title: 'Done', hasSubsections: false, allowWipLimit: false }
   ]);
-  const { id } = useParams();
+  const { id } = useParams(); // Get board ID from URL parameters
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'info'
   });
-  const [boardMembers, setBoardMembers] = useState([]);
+  const [boardMembers, setBoardMembers] = useState([]); // State for board members
 
   useEffect(() => {
+    // Fetch board data and tasks
     const fetchBoard = async () => {
       try {
-        const data = await getBoard(id);
+        const data = await getBoard(id); // Fetch board data
         setBoard(data);
-        const groupedTasks = groupTasksByStatus(data.tasks || []);
+        const groupedTasks = groupTasksByStatus(data.tasks || []); // Group tasks by status
         setTasks(groupedTasks);
         
         // Merge fetched column data with initial column structure
@@ -66,17 +65,18 @@ function BoardView({ darkMode }) {
 
     fetchBoard();
 
-    const intervalId = setInterval(fetchBoard, 2000); // Refresh every 5 seconds
+    const intervalId = setInterval(fetchBoard, 5000); // Refresh every 5 seconds
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
 
-
+  // Function to handle column settings click
   const handleColumnSettingsClick = (column) => {
     setSelectedColumn(column);
     setColumnSettingsOpen(true);
   };
 
+  // Function to save updated column settings
   const handleColumnSettingsSave = async (columnId, updatedSettings) => {
     try {
       await updateColumn(board._id, columnId, updatedSettings);
@@ -96,6 +96,7 @@ function BoardView({ darkMode }) {
     }
   };
 
+  // Function to check if WIP limit is exceeded
   const isWipLimitExceeded = (columnId) => {
     const column = columns.find(col => col.id === columnId);
     if (!column || !column.allowWipLimit || !column.wipLimit) return false;
@@ -107,12 +108,11 @@ function BoardView({ darkMode }) {
       taskCount = tasks[columnId]?.length || 0;
     }
 
-    return taskCount > column.wipLimit;
+    return taskCount > column.wipLimit; // Return true if task count exceeds WIP limit
   };
 
-
+  // Function to group tasks by their status
   const groupTasksByStatus = (tasks) => {
-    //console.log('Grouping tasks:', tasks);
     const grouped = columns.reduce((acc, column) => {
       if (column.hasSubsections) {
         acc[column.id] = { active: [], done: [] };
@@ -123,7 +123,6 @@ function BoardView({ darkMode }) {
     }, {});
 
     tasks.forEach(task => {
-      //console.log('Processing task:', task);
       const status = task.status.toLowerCase();
       if (status === 'specification active') {
         grouped['specification'].active.push(task);
@@ -140,10 +139,10 @@ function BoardView({ darkMode }) {
       }
     });
 
-
-    return grouped;
+    return grouped; // Return grouped tasks
   };
 
+  // Function to handle new task creation
   const handleNewTask = async () => {
     try {
       const colorPairs = [
@@ -165,14 +164,14 @@ function BoardView({ darkMode }) {
         ...prev,
         backlog: [...(prev.backlog || []), newTask]
       }));
-      setNewTaskTitle('');
-      setOpenNewTaskDialog(false);
+      setNewTaskTitle(''); // Reset new task title
+      setOpenNewTaskDialog(false); // Close dialog
     } catch (error) {
       console.error('Error creating task:', error);
     }
   };
 
-
+  // Function to handle drag end event
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
 
@@ -246,7 +245,7 @@ function BoardView({ darkMode }) {
         if (task) return { ...task }; // Return a copy of the task
       }
     }
-    return null;
+    return null; // Return null if task not found
   };
 
   // Helper function to remove a task from its current location
@@ -255,14 +254,14 @@ function BoardView({ darkMode }) {
       if (Array.isArray(columnTasks)) {
         const index = columnTasks.findIndex(t => t._id === task._id);
         if (index !== -1) {
-          columnTasks.splice(index, 1);
+          columnTasks.splice(index, 1); // Remove task from array
           return;
         }
       } else if (columnTasks.active || columnTasks.done) {
         ['active', 'done'].forEach(subColumn => {
           const index = columnTasks[subColumn].findIndex(t => t._id === task._id);
           if (index !== -1) {
-            columnTasks[subColumn].splice(index, 1);
+            columnTasks[subColumn].splice(index, 1); // Remove task from sub-column
             return;
           }
         });
@@ -275,9 +274,9 @@ function BoardView({ darkMode }) {
     const [columnId, subColumn] = newStatus.toLowerCase().split(' ');
     if (tasks[columnId]) {
       if (Array.isArray(tasks[columnId])) {
-        tasks[columnId].splice(index, 0, { ...task, status: newStatus });
+        tasks[columnId].splice(index, 0, { ...task, status: newStatus }); // Add task to array
       } else if (subColumn) {
-        tasks[columnId][subColumn].splice(index, 0, { ...task, status: newStatus });
+        tasks[columnId][subColumn].splice(index, 0, { ...task, status: newStatus }); // Add task to sub-column
       }
     }
   };
@@ -291,12 +290,13 @@ function BoardView({ darkMode }) {
     return columnId.charAt(0).toUpperCase() + columnId.slice(1);
   };
 
-
+  // Function to handle task click
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setTaskDetailsOpen(true);
   };
 
+  // Function to handle task update
   const handleTaskUpdate = async (updatedTask) => {
     try {
       const response = await updateTask(id, updatedTask._id, {
@@ -324,7 +324,7 @@ function BoardView({ darkMode }) {
               );
             }
           });
-          return newTasks;
+          return newTasks; // Return updated tasks
         });
         console.log('Task updated successfully:', response.task);
       } else {
@@ -335,6 +335,7 @@ function BoardView({ darkMode }) {
     }
   };
 
+  // Function to handle task deletion
   const handleTaskDelete = async (taskId) => {
     try {
       await deleteTask(board._id, taskId);
@@ -342,13 +343,13 @@ function BoardView({ darkMode }) {
         const newTasks = { ...prevTasks };
         Object.keys(newTasks).forEach(column => {
           if (Array.isArray(newTasks[column])) {
-            newTasks[column] = newTasks[column].filter(task => task._id !== taskId);
+            newTasks[column] = newTasks[column].filter(task => task._id !== taskId); // Filter out deleted task
           } else if (newTasks[column].active && newTasks[column].done) {
             newTasks[column].active = newTasks[column].active.filter(task => task._id !== taskId);
             newTasks[column].done = newTasks[column].done.filter(task => task._id !== taskId);
           }
         });
-        return newTasks;
+        return newTasks; // Return updated tasks
       });
       setSnackbar({
         open: true,
@@ -365,6 +366,7 @@ function BoardView({ darkMode }) {
     }
   };
 
+  // Function to handle code copying
   const handleCopyCode = () => {
     if (board && board.code) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -395,6 +397,7 @@ function BoardView({ darkMode }) {
     }
   };
 
+  // Function to render a task
   const renderTask = (task, provided) => {
     const colorPairs = [
       { light: '#FFD1DC', dark: '#d51a79' }, // Light Pink / Dark Red
@@ -442,7 +445,7 @@ function BoardView({ darkMode }) {
           borderRadius: '2px',
           transform: 'rotate(-1deg)',
         }}
-        onClick={() => handleTaskClick(task)}
+        onClick={() => handleTaskClick(task)} // Handle task click
       >
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
           {task.title}
@@ -483,7 +486,7 @@ function BoardView({ darkMode }) {
   };
   
   if (!board) {
-    return <Typography>Loading...</Typography>;
+    return <Typography>Loading...</Typography>; // Show loading text if board is not loaded
   }
 
   return (
@@ -505,7 +508,7 @@ function BoardView({ darkMode }) {
       </Box>
       <Button
         variant="contained"
-        onClick={() => setOpenNewTaskDialog(true)}
+        onClick={() => setOpenNewTaskDialog(true)} // Open new task dialog
         sx={{
           mb: 1, // Reduced mb
           alignSelf: 'flex-start',
@@ -785,7 +788,7 @@ function BoardView({ darkMode }) {
             label="Task Title"
             fullWidth
             value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
+            onChange={(e) => setNewTaskTitle(e.target.value)} // Update new task title
           />
         </DialogContent>
         <DialogActions>
@@ -817,4 +820,4 @@ function BoardView({ darkMode }) {
   );
 }
 
-export default BoardView;
+export default BoardView; // Export the BoardView component

@@ -1,36 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
 
+// ColumnSettings component for managing column settings in a dialog
 function ColumnSettings({ open, onClose, column, onSave }) {
+  // State variables for done rule and WIP limit
   const [doneRule, setDoneRule] = useState('');
   const [wipLimit, setWipLimit] = useState('');
 
+  // Effect to set initial values based on the column prop
   useEffect(() => {
     if (column) {
-      setDoneRule(column.doneRule || '');
-      setWipLimit(column.wipLimit ? column.wipLimit.toString() : '');
+      setDoneRule(column.doneRule || ''); // Set done rule from column or default to empty
+      setWipLimit(column.wipLimit ? column.wipLimit.toString() : ''); // Set WIP limit from column or default to empty
     }
   }, [column]);
 
+  // Function to handle saving the settings
   const handleSave = () => {
     const updatedData = {};
+    // Check if done rule is provided
     if (doneRule !== '') {
-      updatedData.doneRule = doneRule;
+      updatedData.doneRule = doneRule; // Add done rule to updated data
     } else {
-      // If doneRule is empty, set it to an empty string to clear it
-      updatedData.doneRule = '';
+      updatedData.doneRule = ''; // Ensure done rule is empty if not provided
     }
+    // Check if WIP limit is provided
     if (wipLimit !== '') {
-      const wipLimitValue = parseInt(wipLimit, 10);
+      const wipLimitValue = parseInt(wipLimit, 10); // Parse WIP limit to integer
+      // Validate WIP limit
       if (!isNaN(wipLimitValue) && wipLimitValue >= 1) {
-        updatedData.wipLimit = wipLimitValue;
+        updatedData.wipLimit = wipLimitValue; // Add valid WIP limit to updated data
       } else if (wipLimitValue !== null) {
-        alert('WIP Limit must be at least 1.');
-        return;
+        alert('WIP Limit must be at least 1.'); // Alert if WIP limit is invalid
+        return; // Exit if validation fails
       }
     }
-    onSave(column.id, updatedData);
-    onClose();
+    onSave(column.id, updatedData); // Call onSave with column ID and updated data
+    onClose(); // Close the dialog
   };
 
   return (
@@ -45,25 +51,25 @@ function ColumnSettings({ open, onClose, column, onSave }) {
           multiline
           rows={4}
           value={doneRule}
-          onChange={(e) => setDoneRule(e.target.value)}
+          onChange={(e) => setDoneRule(e.target.value)} // Update done rule on change
         />
-        {column?.allowWipLimit && (
+        {column?.allowWipLimit && ( // Conditionally render WIP limit field
           <TextField
             margin="dense"
             label="WIP Limit"
             type="number"
             fullWidth
             value={wipLimit}
-            onChange={(e) => setWipLimit(e.target.value)}
+            onChange={(e) => setWipLimit(e.target.value)} // Update WIP limit on change
           />
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave}>Save</Button>
+        <Button onClick={handleSave}>Save</Button> // Save settings on click
       </DialogActions>
     </Dialog>
   );
 }
 
-export default ColumnSettings;
+export default ColumnSettings; // Export the component

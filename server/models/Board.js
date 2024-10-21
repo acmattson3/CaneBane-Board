@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const shortid = require('shortid');
 
+// Define the schema for tasks within a board
 const taskSchema = new mongoose.Schema({
   _id: {
     type: String,
@@ -41,6 +42,7 @@ const taskSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Define the schema for columns within a board
 const columnSchema = new mongoose.Schema({
   id: String,
   title: String,
@@ -49,6 +51,7 @@ const columnSchema = new mongoose.Schema({
   doneRule: String
 });
 
+// Define the schema for the board itself
 const boardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -75,4 +78,5 @@ const boardSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Export the Board model based on the boardSchema
 module.exports = mongoose.model('Board', boardSchema);
