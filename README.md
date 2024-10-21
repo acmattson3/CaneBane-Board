@@ -50,6 +50,39 @@ Before you begin, ensure you have the following installed on your system:
 
 7. Open your browser and navigate to `http://localhost:3000` to use the application.
 
+8. **Deploying to a Live Production Server:**
+   - Choose a cloud provider (e.g., AWS, Heroku, DigitalOcean).
+   - Set up your server environment (Node.js, MongoDB).
+   - Clone the repository on your server:
+     ```
+     git clone https://github.com/your-username/canebane.git
+     cd canebane
+     ```
+   - Install dependencies:
+     ```
+     cd server && npm install
+     cd ../client && npm install
+     ```
+   - Create a production `.env` file in the `server` directory with the following content:
+     ```
+     PORT=5000
+     MONGODB_URI=mongodb://<your-production-db-uri>
+     JWT_SECRET=your_production_secret_key_here
+     ```
+     Replace `<your-production-db-uri>` with your actual MongoDB connection string and `your_production_secret_key_here` with a secure random string.
+   - Build the client for production:
+     ```
+     cd client
+     npm run build
+     ```
+   - Serve the client files using a static file server (e.g., `serve`, `nginx`, or `http-server`).
+   - Start the server:
+     ```
+     cd ../server
+     npm start
+     ```
+   - Ensure your server is configured to handle HTTPS for secure connections.
+
 ## Usage
 
 1. Sign up for a new account or log in if you already have one.
