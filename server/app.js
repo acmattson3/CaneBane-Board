@@ -5,8 +5,8 @@ const mongoose = require('mongoose'); // Import mongoose for MongoDB object mode
 require('dotenv').config(); // Load environment variables from .env file
 
 const authRoutes = require('./routes/auth'); // Import authentication routes
-const boardRoutes = require('./routes/boards'); // Import board-related routes
-const userRoutes = require('./routes/users'); // Import user-related routes
+const boardRoutes = require('./routes/boards'); // Import board routes
+const userRoutes = require('./routes/users'); // Import user routes
 
 const app = express(); // Create an instance of the express application
 
@@ -20,9 +20,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 });
 
 // Set up routes for the application
-app.use('/api/auth', authRoutes); // Route for authentication-related requests
-app.use('/api/boards', boardRoutes); // Route for board-related requests
-app.use('/api/users', userRoutes); // Route for user-related requests
+app.use('/api/auth', authRoutes); // Route for authentication requests
+app.use('/api/boards', boardRoutes); // Route for board requests
+app.use('/api/users', userRoutes); // Route for user requests
 
 // Export the app instance for use in other files (e.g., server.js)
 module.exports = app;
