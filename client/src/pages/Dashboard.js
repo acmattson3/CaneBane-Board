@@ -309,10 +309,10 @@ function Dashboard() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })} // Close snackbar
-      >
+      > 
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message} // Display snackbar message
-        </Alert>
+          {snackbar.message}
+        </Alert> // Display snackbar message
       </Snackbar>
     </Container>
   );
