@@ -202,3 +202,30 @@ exports.getBoardMembers = async (req, res) => {
     res.status(500).json({ message: 'Error fetching board members', error: error.message }); // Return server error
   }
 };
+
+exports.joinBoard = async (req, res) => {
+  try {
+    const { boardCode } = req.body; // Assuming the client provides a unique board code to join
+    const userId = req.user.id; // Authenticated user's ID
+
+    // Find the board by its unique code
+    const board = await Board.findOne({ code: boardCode });
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+
+    // Check if the user is already a member of the board
+    if (board.members.includes(userId)) {
+      return res.status(400).json({ message: 'You are already a member of this board' });
+    }
+
+    // Add the user to the board's members
+    board.members.push(userId);
+    await board.save();
+
+    res.status(200).json({ message: 'Joined the board successfully', board });
+  } catch (error) {
+    console.error('Error joining board:', error);
+    res.status(500).json({ message: 'Error joining board', error: error.message });
+  }
+};
