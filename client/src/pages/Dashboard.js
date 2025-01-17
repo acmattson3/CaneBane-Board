@@ -244,7 +244,7 @@ function Dashboard() {
             fullWidth
             variant="outlined"
             value={newBoardName}
-            onChange={(e) => setNewBoardName(e.target.value)} // Update new board name
+            onChange={(e) => setNewBoardName(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -269,7 +269,7 @@ function Dashboard() {
             fullWidth
             variant="outlined"
             value={boardCode}
-            onChange={(e) => setBoardCode(e.target.value)} // Update board code
+            onChange={(e) => setBoardCode(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -294,7 +294,7 @@ function Dashboard() {
             fullWidth
             variant="outlined"
             value={confirmBoardName}
-            onChange={(e) => setConfirmBoardName(e.target.value)} // Update confirmation input
+            onChange={(e) => setConfirmBoardName(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
@@ -308,11 +308,11 @@ function Dashboard() {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })} // Close snackbar
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       > 
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
-        </Alert> // Display snackbar message
+        </Alert>
       </Snackbar>
     </Container>
   );
