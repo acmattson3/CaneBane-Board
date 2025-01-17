@@ -1,7 +1,7 @@
 // client/src/services/auth.js
 import axios from 'axios'; // Import axios for making HTTP requests
 
-const API_URL = 'http://localhost:5000/api/auth'; // Base URL for authentication API
+const API_URL = '/api/auth'; // Base URL for authentication API
 
 // Function to register a new user
 export const register = async (name, email, password) => {
