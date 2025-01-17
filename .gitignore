@@ -89,3 +89,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# File Aggregation
+get_files.py
+aggregated_texts.txt
