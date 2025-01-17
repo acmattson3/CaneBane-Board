@@ -54,15 +54,16 @@ export const createBoard = async (name) => {
 };
 
 // Function to join a board using a code
-export const joinBoard = async (code) => {
+export const joinBoard = async (boardCode) => {
   try {
-    const response = await apiClient.post('/boards/join', { code }); // Make POST request to join board
+    const response = await apiClient.post('/boards/join', { boardCode }); // Use "boardCode" to match backend
     return response.data; // Return the data from the response
   } catch (error) {
     console.error('Error joining board:', error); // Log error
     throw error; // Rethrow error
   }
 };
+
 
 // Function to get a specific board by ID
 export const getBoard = async (boardId) => {
