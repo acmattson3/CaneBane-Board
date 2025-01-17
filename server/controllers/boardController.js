@@ -229,3 +229,34 @@ exports.joinBoard = async (req, res) => {
     res.status(500).json({ message: 'Error joining board', error: error.message });
   }
 };
+
+exports.updateColumn = async (req, res) => {
+  try {
+    const { boardId, columnId } = req.params; // Extract board and column IDs from request params
+    const { title, wipLimit, doneRule } = req.body; // Extract updated column data from request body
+
+    const board = await Board.findById(boardId); // Find the board by ID
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+
+    // Find the column to update
+    const columnIndex = board.columns.findIndex(column => column.id === columnId);
+    if (columnIndex === -1) {
+      return res.status(404).json({ message: 'Column not found' });
+    }
+
+    // Update column data
+    const column = board.columns[columnIndex];
+    column.title = title || column.title;
+    column.wipLimit = wipLimit || column.wipLimit;
+    column.doneRule = doneRule || column.doneRule;
+
+    await board.save(); // Save the updated board
+
+    res.status(200).json({ message: 'Column updated successfully', column });
+  } catch (error) {
+    console.error('Error updating column:', error.message);
+    res.status(500).json({ message: 'Error updating column', error: error.message });
+  }
+};
