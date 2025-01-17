@@ -173,7 +173,7 @@ function Dashboard() {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setOpenCreateDialog(true)} // Open create dialog
+            onClick={() => setOpenCreateDialog(true)}
             sx={{ mr: 2 }}
           >
             Create Board
@@ -181,7 +181,7 @@ function Dashboard() {
           <Button
             variant="outlined"
             startIcon={<GroupAddIcon />}
-            onClick={() => setOpenJoinDialog(true)} // Open join dialog
+            onClick={() => setOpenJoinDialog(true)}
           >
             Join Board
           </Button>
@@ -189,7 +189,7 @@ function Dashboard() {
       </Box>
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
-          {error} // Display error message if exists
+          {error}
         </Typography>
       )}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -198,21 +198,21 @@ function Dashboard() {
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h5" component="h2" gutterBottom>
-                  {board.name} // Display board name
+                  {board.name}
                 </Typography>
               </CardContent>
               <CardActions sx={{ justifyContent: 'space-between', alignItems: 'center', px: 2, pb: 2 }}>
                 <Button
                   size="small"
                   startIcon={<VisibilityIcon />}
-                  onClick={() => navigate(`/board/${board._id}`)} // Navigate to board
+                  onClick={() => navigate(`/board/${board._id}`)}
                 >
                   View Board
                 </Button>
                 <IconButton
                   size="small"
                   color="error"
-                  onClick={() => handleDeleteClick(board)} // Handle delete click
+                  onClick={() => handleDeleteClick(board)}
                   sx={{
                     '&:hover': {
                       backgroundColor: 'error.light',
