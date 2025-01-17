@@ -1,7 +1,7 @@
 import axios from 'axios'; // Import axios for making HTTP requests
 import { getCurrentUser } from './auth'; // Import function to get current user data
 
-const API_URL = 'http://localhost:5000/api'; // Base URL for the API
+const API_URL = '/api'; // Base URL for the API
 
 // Create an axios instance with the base URL
 const apiClient = axios.create({
