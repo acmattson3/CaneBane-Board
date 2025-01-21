@@ -216,66 +216,88 @@ function BoardView({ darkMode }) {
 
   // Function to handle drag end event
   const onDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
+  const { source, destination, draggableId } = result;
 
-    // If there's no destination, we don't need to do anything
-    if (!destination) {
+  // If there's no destination, we don't need to do anything
+  if (!destination) {
+    return;
+  }
+
+  // Extract source and destination column IDs
+  const sourceColumnId = source.droppableId.split('-')[0];
+  const destColumnId = destination.droppableId.split('-')[0];
+
+  // If the task is being moved to the same position, do nothing
+  if (sourceColumnId === destColumnId && source.index === destination.index) {
+    return;
+  }
+
+  // Find the destination column and check for WIP limits
+  const destColumn = columns.find((col) => col.id === destColumnId);
+  if (destColumn && destColumn.wipLimit) {
+    const destTasks = destColumn.hasSubsections
+      ? [...(tasks[destColumnId]?.active || []), ...(tasks[destColumnId]?.done || [])]
+      : tasks[destColumnId] || [];
+
+    // Prevent move if WIP limit is reached
+    if (sourceColumnId !== destColumnId && destTasks.length >= destColumn.wipLimit) {
+      setSnackbar({
+        open: true,
+        message: `Cannot move task: WIP limit reached for ${destColumn.title}`,
+        severity: 'warning',
+      });
       return;
     }
+  }
 
-    // Check if the task is being moved to a different column or within the same column
-    if (
-      source.droppableId !== destination.droppableId ||
-      source.index !== destination.index
-    ) {
-      const sourceColumnId = source.droppableId.split('-')[0];
-      const destColumnId = destination.droppableId.split('-')[0];
-      const destColumn = columns.find(col => col.id === destColumnId);
+  const taskId = draggableId;
+  const newStatus = getNewStatus(destination.droppableId);
 
-      // Check if the destination column has a WIP limit
-      if (destColumn.wipLimit) {
-        const destTasks = destColumn.hasSubsections
-          ? [...(tasks[destColumnId]?.active || []), ...(tasks[destColumnId]?.done || [])]
-          : tasks[destColumnId] || [];
+  // Optimistically update local state
+  setTasks((prevTasks) => {
+    const updatedTasks = JSON.parse(JSON.stringify(prevTasks)); // Deep clone for immutability
 
-        // If the task is moving from a different column and the destination column is at or over the WIP limit, prevent the move
-        if (sourceColumnId !== destColumnId && destTasks.length >= destColumn.wipLimit) {
-          setSnackbar({
-            open: true,
-            message: `Cannot move task: WIP limit reached for ${destColumn.title}`,
-            severity: 'warning'
-          });
-          return;
-        }
-      }
+    const task = findTaskById(taskId, updatedTasks);
 
-      // Proceed with updating the task status
-      const taskId = draggableId;
-      const newStatus = getNewStatus(destination.droppableId);
+    if (task) {
+      // Remove the task from its current location
+      removeTaskFromCurrentLocation(task, updatedTasks);
 
-      try {
-        await updateTask(board._id, taskId, { status: newStatus });
-
-        // Update local state
-        setTasks(prevTasks => {
-          const updatedTasks = JSON.parse(JSON.stringify(prevTasks)); // Deep clone
-          const task = findTaskById(taskId, updatedTasks);
-
-          if (task) {
-            // Remove the task from its current location
-            removeTaskFromCurrentLocation(task, updatedTasks);
-
-            // Add the task to its new location
-            addTaskToNewLocation(task, newStatus, destination.index, updatedTasks);
-          }
-
-          return updatedTasks;
-        });
-      } catch (error) {
-        console.error('Error updating task status:', error);
-      }
+      // Add the task to its new location
+      addTaskToNewLocation(task, newStatus, destination.index, updatedTasks);
     }
-  };
+
+    return updatedTasks; // Return updated state
+  });
+
+  try {
+    // Update the task on the server
+    await updateTask(board._id, taskId, { status: newStatus });
+  } catch (error) {
+    console.error('Error updating task status:', error);
+
+    // Rollback the state if the update fails
+    setTasks((prevTasks) => {
+      const rollbackTasks = JSON.parse(JSON.stringify(prevTasks)); // Deep clone
+      const task = findTaskById(taskId, rollbackTasks);
+
+      if (task) {
+        // Rollback: Remove task from the failed destination and add it back to the source
+        removeTaskFromCurrentLocation(task, rollbackTasks);
+        addTaskToNewLocation(task, getNewStatus(source.droppableId), source.index, rollbackTasks);
+      }
+
+      return rollbackTasks; // Return the rolled-back state
+    });
+
+    setSnackbar({
+      open: true,
+      message: 'Error updating task status. Changes reverted.',
+      severity: 'error',
+    });
+  }
+};
+
 
   // Helper function to find a task by its ID
   const findTaskById = (taskId, tasks) => {
