@@ -23,11 +23,13 @@ apiClient.interceptors.request.use(
 // Function to rename a board
 export const renameBoard = async (boardId, newName) => {
   try {
-    const response = await apiClient.put(`/boards/${boardId}/rename`, { name: newName }); // Make PUT request to rename board
-    return response.data; // Return the data from the response
+    const response = await apiClient.put(`/boards/${boardId}/rename`, {
+      name: newName, // Pass only the name field
+    });
+    return response.data;
   } catch (error) {
-    console.error('Error renaming board:', error); // Log error
-    throw error; // Rethrow error
+    console.error('Error renaming board:', error);
+    throw error;
   }
 };
 
