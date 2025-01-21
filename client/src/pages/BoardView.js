@@ -19,7 +19,7 @@ function BoardView({ darkMode }) {
   // State variables for board, tasks, dialogs, snackbar, etc.
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
-  const [isRenameDisabled, setIsRenameDisabled] = useState(true);
+  const [renameDisabled, setRenameDisabled] = useState(true);
   const [board, setBoard] = useState(null);
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
@@ -76,7 +76,7 @@ function BoardView({ darkMode }) {
   }, [id]);
 
   useEffect(() => {
-    setIsRenameDisabled(
+    setRenameDisabled(
       newBoardName.trim() === board?.name || 
       newBoardName.trim().length < 1 || 
       newBoardName.trim().length > 25
@@ -870,7 +870,7 @@ function BoardView({ darkMode }) {
           <Button onClick={handleNewTask}>Create</Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={isRenameDialogOpen} onClose={() => setIsRenameDialogOpen(false)}>
+      <Dialog open={renameDialogOpen} onClose={() => setRenameDialogOpen(false)}>
         <DialogTitle>Rename Board</DialogTitle>
         <DialogContent>
           <TextField
@@ -883,7 +883,7 @@ function BoardView({ darkMode }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsRenameDialogOpen(false)} color="error">
+          <Button onClick={() => setRenameDialogOpen(false)} color="error">
             Cancel
           </Button>
           <Button
