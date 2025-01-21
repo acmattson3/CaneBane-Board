@@ -5,7 +5,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import AddIcon from '@mui/icons-material/Add';
-import { getBoard, createTask, updateTask, updateColumn, deleteTask, getBoardMembers } from '../services/api';
+import { getBoard, createTask, updateTask, updateColumn, deleteTask, getBoardMembers, renameBoard } from '../services/api';
 import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -91,7 +91,7 @@ function BoardView({ darkMode }) {
   const handleRenameBoard = async () => {
     try {
       // Call the API to update the board name
-      await updateBoardName(board._id, { name: newBoardName });
+      await renameBoard(board._id, { name: newBoardName });
 
       // Update the board state with the new name
       setBoard((prevBoard) => ({ ...prevBoard, name: newBoardName }));
