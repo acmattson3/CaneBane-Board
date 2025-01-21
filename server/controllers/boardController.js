@@ -264,30 +264,29 @@ exports.updateColumn = async (req, res) => {
 // Function to rename a board
 exports.renameBoard = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name } = req.body; // Extract 'name' from request body
+    const { name } = req.body;
 
-    if (!name || typeof name !== 'string') {
-      return res.status(400).json({ message: 'Invalid board name provided' });
+    if (typeof name !== 'string') { // Validate the type of `name`
+      return res.status(400).json({ message: 'Invalid name format. Name must be a string.' });
     }
 
-    const board = await Board.findById(id);
-
+    const board = await Board.findById(req.params.id);
     if (!board) {
       return res.status(404).json({ message: 'Board not found' });
     }
 
     if (!board.owner.equals(req.user.id)) {
-      return res.status(403).json({ message: 'Unauthorized to rename this board' });
+      return res.status(403).json({ message: 'Unauthorized to rename this board.' });
     }
 
-    board.name = name; // Set the new name
+    board.name = name; // Update the board name
     await board.save();
 
-    res.status(200).json({ message: 'Board renamed successfully', board });
+    res.status(200).json({ message: 'Board renamed successfully.', board });
   } catch (error) {
     console.error('Error renaming board:', error);
-    res.status(500).json({ message: 'Error renaming board', error: error.message });
+    res.status(500).json({ message: 'Error renaming board' });
   }
 };
+
 
