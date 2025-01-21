@@ -11,7 +11,9 @@ import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
 import PersonIcon from '@mui/icons-material/Person';
 import EditIcon from '@mui/icons-material/Edit';
+import { getCurrentUser } from '../services/auth';
 
+const currentUserId = getCurrentUser()?.user?.id;
 
 function BoardView({ darkMode }) {
   // State variables for board, tasks, dialogs, snackbar, etc.
