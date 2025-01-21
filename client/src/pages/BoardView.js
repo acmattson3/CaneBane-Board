@@ -870,6 +870,31 @@ function BoardView({ darkMode }) {
           <Button onClick={handleNewTask}>Create</Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={isRenameDialogOpen} onClose={() => setIsRenameDialogOpen(false)}>
+        <DialogTitle>Rename Board</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="New Board Name"
+            fullWidth
+            value={newBoardName}
+            onChange={(e) => setNewBoardName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsRenameDialogOpen(false)} color="error">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRenameBoard}
+            color="primary"
+            disabled={newBoardName === board.name || newBoardName.length < 1 || newBoardName.length > 25}
+          >
+            Change Name
+          </Button>
+        </DialogActions>
+      </Dialog>
       <ColumnSettingsDialog
         open={columnSettingsOpen}
         onClose={() => setColumnSettingsOpen(false)}
