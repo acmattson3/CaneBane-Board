@@ -260,3 +260,40 @@ exports.updateColumn = async (req, res) => {
     res.status(500).json({ message: 'Error updating column', error: error.message });
   }
 };
+
+// Function to rename a board
+exports.renameBoard = async (req, res) => {
+  const { id } = req.params; // Board ID from the request parameters
+  const { name } = req.body; // New name from the request body
+  const userId = req.user.id; // Authenticated user's ID from middleware
+
+  // Validate the new name
+  if (!name || name.length < 1 || name.length > 25) {
+    return res.status(400).json({ message: 'Name must be between 1 and 25 characters long.' });
+  }
+
+  try {
+    // Find the board by ID
+    const board = await Board.findById(id);
+
+    if (!board) {
+      return res.status(404).json({ message: 'Board not found.' });
+    }
+
+    // Check if the authenticated user is the owner of the board
+    if (board.owner.toString() !== userId) {
+      return res.status(403).json({ message: 'You are not authorized to rename this board.' });
+    }
+
+    // Update the board name
+    board.name = name;
+    await board.save();
+
+    // Log and respond with success
+    console.log(`Board renamed successfully: ${board.name} (ID: ${board._id})`);
+    res.status(200).json({ message: 'Board renamed successfully.', board });
+  } catch (error) {
+    console.error('Error renaming board:', error);
+    res.status(500).json({ message: 'An error occurred while renaming the board.' });
+  }
+};

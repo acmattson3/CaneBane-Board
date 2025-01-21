@@ -20,6 +20,17 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error) // Handle request error
 );
 
+// Function to rename a board
+export const renameBoard = async (boardId, newName) => {
+  try {
+    const response = await apiClient.put(`/boards/${boardId}/rename`, { name: newName }); // Make PUT request to rename board
+    return response.data; // Return the data from the response
+  } catch (error) {
+    console.error('Error renaming board:', error); // Log error
+    throw error; // Rethrow error
+  }
+};
+
 // Function to get all boards
 export const getBoards = async () => {
   const response = await apiClient.get('/boards'); // Make GET request to fetch boards

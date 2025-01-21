@@ -10,11 +10,14 @@ import TaskDetailsDialog from '../components/TasksDetails';
 import ColumnSettingsDialog from '../components/ColumnSettings';
 import WarningIcon from '@mui/icons-material/Warning';
 import PersonIcon from '@mui/icons-material/Person';
-
+import EditIcon from '@mui/icons-material/Edit';
 
 
 function BoardView({ darkMode }) {
   // State variables for board, tasks, dialogs, snackbar, etc.
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [newBoardName, setNewBoardName] = useState('');
+  const [isRenameDisabled, setIsRenameDisabled] = useState(true);
   const [board, setBoard] = useState(null);
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
@@ -69,6 +72,46 @@ function BoardView({ darkMode }) {
 
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
+
+  useEffect(() => {
+    setIsRenameDisabled(
+      newBoardName.trim() === board?.name || 
+      newBoardName.trim().length < 1 || 
+      newBoardName.trim().length > 25
+    );
+  }, [newBoardName, board]);
+
+  // Helper function to open the rename dialog
+  const handleOpenRenameDialog = () => {
+    setNewBoardName(board.name); // Initialize with the current name
+    setRenameDialogOpen(true);
+  };
+
+  // Function to handle renaming the board
+  const handleRenameBoard = async () => {
+    try {
+      // Call the API to update the board name
+      await updateBoardName(board._id, { name: newBoardName });
+
+      // Update the board state with the new name
+      setBoard((prevBoard) => ({ ...prevBoard, name: newBoardName }));
+
+      // Close the dialog and show success message
+      setRenameDialogOpen(false);
+      setSnackbar({
+        open: true,
+        message: 'Board name updated successfully!',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error renaming board:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to update board name. Please try again.',
+        severity: 'error',
+      });
+    }
+  };
 
   // Function to handle column settings click
   const handleColumnSettingsClick = (column) => {
@@ -500,10 +543,17 @@ function BoardView({ darkMode }) {
             </IconButton>
           </Tooltip>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Typography variant="h4" align="center">
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Typography variant="h4" align="center" sx={{ mr: 2 }}>
             {board.name}
           </Typography>
+          {board.owner === currentUserId && ( // Check if the current user is the owner
+            <Tooltip title="Edit Board Name">
+              <IconButton onClick={() => setRenameDialogOpen(true)} size="small">
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </Box>
       <Button

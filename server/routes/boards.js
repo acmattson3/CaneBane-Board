@@ -11,6 +11,7 @@ const {
   updateColumn,
   deleteTask,
   getBoardMembers,
+  renameBoard,
 } = require('../controllers/boardController');
 const auth = require('../middleware/auth');
 
@@ -51,5 +52,8 @@ router.delete('/:boardId/tasks/:taskId', deleteTask);
 
 // Route to get members of a specific board
 router.get('/:boardId/members', getBoardMembers);
+
+// Route to rename a board by ID
+router.put('/:id/rename', renameBoard);
 
 module.exports = router;
