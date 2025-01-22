@@ -279,7 +279,8 @@ exports.renameBoard = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to rename this board.' });
     }
 
-    console.log("LOG!!! New board name: ", name);
+    //process.stdout.write(`LOG!!! New board name: ${JSON.stringify(name)}\n`);
+    console.log("LOG!!! New board name:", require('util').inspect(name, { depth: null }));
     board.name = String(name); // Update the board name
     await board.save();
 
