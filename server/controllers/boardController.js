@@ -279,7 +279,7 @@ exports.renameBoard = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to rename this board.' });
     }
 
-    board.name = name; // Update the board name
+    //board.name = name; // Update the board name
     await board.save();
 
     res.status(200).json({ message: 'Board renamed successfully.', board });
