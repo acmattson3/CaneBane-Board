@@ -93,8 +93,8 @@ function BoardView({ darkMode }) {
   const handleRenameBoard = async () => {
     try {
       // Call the API to update the board name
-      console.log("Board name: ", newBoardName);
-      await renameBoard(board._id, { name: newBoardName });
+      //console.log("Board name: ", newBoardName);
+      await renameBoard(board._id, newBoardName);
 
       // Update the board state with the new name
       setBoard((prevBoard) => ({ ...prevBoard, name: newBoardName }));
