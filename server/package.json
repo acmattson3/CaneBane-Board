@@ -15,7 +15,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.22",
     "morgan": "^1.10.0",
-    "shortid": "^2.2.16"
+    "nanoid": "^4.0.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
