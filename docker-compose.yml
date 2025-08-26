@@ -5,9 +5,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      PORT: "5000"
-      MONGODB_URI: "mongodb://mongodb:27017/canebane"
-      JWT_SECRET: "bB&7!dK*8Tp^3zL%fY9Qw@X#ErCgGhVr2Mt=+Js"
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/canebane
+      JWT_SECRET: bB&7!dK*8Tp^3zL%fY9Qw@X#ErCgGhVr2Mt=+Js
     depends_on:
       - mongodb
   mongodb:
