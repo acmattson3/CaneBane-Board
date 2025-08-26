@@ -3,13 +3,18 @@ const bcrypt = require('bcryptjs'); // Import bcrypt for hashing passwords
 
 // Define the schema for the user
 const userSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
+  name: {
+    type: String,
     required: true // Name is required
   },
-  email: { 
-    type: String, 
-    required: true, 
+  username: {
+    type: String,
+    required: true,
+    unique: true // Username must be unique
+  },
+  email: {
+    type: String,
+    required: true,
     unique: true // Email must be unique
   },
   password: { 

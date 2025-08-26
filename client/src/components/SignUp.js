@@ -8,6 +8,7 @@ import { register } from '../services/auth'; // Importing register function from
 // SignUp component for user registration
 function SignUp() {
   const [name, setName] = useState(''); // State for user's name
+  const [username, setUsername] = useState(''); // State for user's username
   const [email, setEmail] = useState(''); // State for user's email
   const [password, setPassword] = useState(''); // State for user's password
   const [error, setError] = useState(''); // State for error messages
@@ -18,7 +19,7 @@ function SignUp() {
     e.preventDefault(); // Prevent default form submission
     setError(''); // Clear previous error messages
     try {
-      await register(name, email, password); // Attempt to register with name, email, and password
+      await register(name, username, email, password); // Attempt to register with name, username, email, and password
       navigate('/login'); // Redirect to login page after successful registration
     } catch (err) {
       // Set error message based on response or default message
@@ -44,6 +45,17 @@ function SignUp() {
             autoFocus // Autofocus on this input
             value={name} // Controlled input for name
             onChange={(e) => setName(e.target.value)} // Update name state on change
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="username"
+            label="Username" // Label for username input
+            name="username"
+            autoComplete="username" // Auto-complete for username
+            value={username} // Controlled input for username
+            onChange={(e) => setUsername(e.target.value)} // Update username state on change
           />
           <TextField
             margin="normal"

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const shortid = require('shortid');
+const { nanoid } = require('nanoid');
 
 // Define the schema for tasks within a board
 const taskSchema = new mongoose.Schema({
@@ -72,7 +72,7 @@ const boardSchema = new mongoose.Schema({
   code: {
     type: String,
     unique: true,
-    default: shortid.generate
+    default: () => nanoid(10)
   }
 }, {
   timestamps: true

@@ -13,8 +13,12 @@ const app = express(); // Create an instance of the express application
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse incoming JSON requests
 
-// Connect to MongoDB using the URI from environment variables
-mongoose.connect(process.env.MONGODB_URI, {
+// Determine the MongoDB connection string. Default to the Docker Compose
+// service name when MONGODB_URI is not provided.
+const mongoURI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/canebane';
+
+// Connect to MongoDB using the resolved URI
+mongoose.connect(mongoURI, {
   useNewUrlParser: true, // Use the new URL parser
   useUnifiedTopology: true, // Use the new unified topology layer
 });
