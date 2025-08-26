@@ -33,6 +33,8 @@ Before you begin, ensure you have the following installed on your system:
    JWT_SECRET=your_secret_key_here
    ```
    Replace `your_secret_key_here` with a secure random string.
+   When running via Docker Compose, the server will fall back to
+   `mongodb://mongodb:27017/canebane` if `MONGODB_URI` is not set.
 
 4. Start MongoDB on your local machine.
 
@@ -85,7 +87,7 @@ Before you begin, ensure you have the following installed on your system:
 
 ## Usage
 
-1. Sign up for a new account or log in if you already have one.
+1. Sign up for a new account (Display Name, Username, Email, Password) or log in using your email address or username.
 2. Once logged in, you'll be redirected to the dashboard.
 3. Create a new board or join an existing one using a board code.
 4. In a board view, you can:
@@ -118,3 +120,16 @@ If you'd like to contribute to this project, please fork the repository and crea
 ## License
 
 This project is licensed under the MIT License.
+
+## Docker
+
+To run the application with Docker:
+
+1. Ensure Docker and Docker Compose are installed.
+2. Build and start the containers:
+   ```
+   docker-compose up --build
+   ```
+3. The server will be available at `http://localhost:5000` and will connect to a MongoDB instance provided by the compose file.
+4. The Docker image serves the prebuilt client from `server/public`, so rebuilding the image is required after client changes.
+

@@ -23,7 +23,8 @@ import AddIcon from '@mui/icons-material/Add';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { getBoards, createBoard, joinBoard, deleteBoard } from '../services/api';
+import EditIcon from '@mui/icons-material/Edit';
+import { getBoards, createBoard, joinBoard, deleteBoard, renameBoard } from '../services/api';
 import { getCurrentUser } from '../services/auth';
 
 // Alert component for Snackbar
@@ -50,6 +51,9 @@ function Dashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // State for delete confirmation dialog
   const [boardToDelete, setBoardToDelete] = useState(null); // Board selected for deletion
   const [confirmBoardName, setConfirmBoardName] = useState(''); // Input for confirming board deletion
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false); // State for rename dialog
+  const [boardToRename, setBoardToRename] = useState(null); // Board selected for renaming
+  const [renameBoardName, setRenameBoardName] = useState(''); // New name for the board
 
   // Fetch boards from the API
   const fetchBoards = useCallback(async () => {
@@ -70,11 +74,6 @@ function Dashboard() {
       fetchedRef.current = true; // Set ref to true after fetching
     }
   }, [currentUser, navigate, fetchBoards]);
-
-  // Effect to log boards state changes
-  useEffect(() => {
-    console.log('Boards state updated:', boards);
-  }, [boards]);
 
   // Handle creating a new board
   const handleCreateBoard = async () => {
@@ -99,25 +98,6 @@ function Dashboard() {
       setOpenJoinDialog(false); // Close dialog
     } catch (error) {
       setError(error.response?.data?.message || 'Error joining board'); // Handle joining error
-    }
-  };
-
-  // Handle deleting a board
-  const handleDeleteBoard = async (boardId) => {
-    try {
-      await deleteBoard(boardId); // Delete board
-      setBoards(prevBoards => prevBoards.filter(board => board._id !== boardId)); // Update boards state
-      setSnackbar({
-        open: true,
-        message: 'Board deleted successfully',
-        severity: 'success'
-      }); // Show success message
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: 'Error deleting board',
-        severity: 'error'
-      }); // Show error message
     }
   };
 
@@ -157,7 +137,26 @@ function Dashboard() {
     }
   };
 
-  console.log('Current boards state:', boards); // Log current boards state
+  // Handle rename button click
+  const handleRenameClick = (board) => {
+    setBoardToRename(board);
+    setRenameBoardName(board.name);
+    setRenameDialogOpen(true);
+  };
+
+  // Confirm board rename
+  const handleRenameConfirm = async () => {
+    try {
+      await renameBoard(boardToRename._id, renameBoardName);
+      setBoards(prev => prev.map(b => (b._id === boardToRename._id ? { ...b, name: renameBoardName } : b)));
+      setSnackbar({ open: true, message: 'Board renamed successfully', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Error renaming board', severity: 'error' });
+    }
+    setRenameDialogOpen(false);
+    setBoardToRename(null);
+    setRenameBoardName('');
+  };
 
   if (!currentUser) {
     return <div>Loading...</div>; // Show loading if no user
@@ -209,19 +208,30 @@ function Dashboard() {
                 >
                   View Board
                 </Button>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => handleDeleteClick(board)}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: 'error.light',
-                      color: 'error.contrastText',
-                    },
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
+                <Box>
+                  {board.owner === currentUser?.user?.id && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRenameClick(board)}
+                      sx={{ mr: 1 }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleDeleteClick(board)}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'error.light',
+                        color: 'error.contrastText',
+                      },
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
               </CardActions>
             </Card>
           </Box>
@@ -275,6 +285,29 @@ function Dashboard() {
         <DialogActions>
           <Button onClick={() => setOpenJoinDialog(false)}>Cancel</Button>
           <Button onClick={handleJoinBoard}>Join</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rename Board Dialog */}
+      <Dialog open={renameDialogOpen} onClose={() => setRenameDialogOpen(false)}>
+        <DialogTitle>Rename Board</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Enter a new name for the board:</DialogContentText>
+          <TextField
+            autoFocus
+            margin="normal"
+            id="renameBoardName"
+            label="Board Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={renameBoardName}
+            onChange={(e) => setRenameBoardName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRenameDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleRenameConfirm}>Rename</Button>
         </DialogActions>
       </Dialog>
 

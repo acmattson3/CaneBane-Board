@@ -192,7 +192,7 @@ exports.deleteTask = async (req, res) => {
 exports.getBoardMembers = async (req, res) => {
   try {
     const { boardId } = req.params; // Get board ID from request parameters
-    const board = await Board.findById(boardId).populate('members', '_id name email'); // Find board and populate members' data
+    const board = await Board.findById(boardId).populate('members', '_id displayName email'); // Find board and populate members' data with display names
     if (!board) {
       return res.status(404).json({ message: 'Board not found' }); // Return not found error
     }

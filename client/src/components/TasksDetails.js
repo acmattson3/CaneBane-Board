@@ -98,7 +98,7 @@ function TaskDetailsDialog({ open, onClose, task, onUpdate, onDelete, darkMode, 
             </MenuItem>
             {boardMembers.map((member) => ( // Map through board members for selection
               <MenuItem key={member._id} value={member._id}>
-                {member.name || member.email} {/* Display member name or email */}
+                {member.displayName || member.email} {/* Display member display name or email */}
               </MenuItem>
             ))}
           </Select>
