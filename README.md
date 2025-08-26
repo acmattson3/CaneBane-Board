@@ -131,4 +131,6 @@ To run the application with Docker:
    docker-compose up --build
    ```
 3. The server will be available at `http://localhost:5000` and will connect to a MongoDB instance provided by the compose file.
+4. The Docker image serves the prebuilt client from `server/public`, so rebuilding the image is required after client changes.
+
 
