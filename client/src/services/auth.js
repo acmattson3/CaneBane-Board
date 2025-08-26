@@ -4,9 +4,9 @@ import axios from 'axios'; // Import axios for making HTTP requests
 const API_URL = '/api/auth'; // Base URL for authentication API
 
 // Function to register a new user
-export const register = async (name, username, email, password) => {
+export const register = async (displayName, username, email, password) => {
   // Make a POST request to the register endpoint with user details including username
-  const response = await axios.post(`${API_URL}/register`, { name, username, email, password });
+  const response = await axios.post(`${API_URL}/register`, { displayName, username, email, password });
   
   // If a token is returned, store user data in local storage
   if (response.data.token) {

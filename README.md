@@ -87,7 +87,7 @@ Before you begin, ensure you have the following installed on your system:
 
 ## Usage
 
-1. Sign up for a new account (Full Name, Username, Email, Password) or log in using your email address or username.
+1. Sign up for a new account (Display Name, Username, Email, Password) or log in using your email address or username.
 2. Once logged in, you'll be redirected to the dashboard.
 3. Create a new board or join an existing one using a board code.
 4. In a board view, you can:

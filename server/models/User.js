@@ -3,9 +3,9 @@ const bcrypt = require('bcryptjs'); // Import bcrypt for hashing passwords
 
 // Define the schema for the user
 const userSchema = new mongoose.Schema({
-  name: {
+  displayName: {
     type: String,
-    required: true // Name is required
+    required: true // Display Name is required
   },
   username: {
     type: String,
