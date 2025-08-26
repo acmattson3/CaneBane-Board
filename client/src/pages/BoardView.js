@@ -19,7 +19,6 @@ function BoardView({ darkMode }) {
   // State variables for board, tasks, dialogs, snackbar, etc.
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
-  const [renameDisabled, setRenameDisabled] = useState(true);
   const [board, setBoard] = useState(null);
   const [tasks, setTasks] = useState({});
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
@@ -75,13 +74,6 @@ function BoardView({ darkMode }) {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [id]);
 
-  useEffect(() => {
-    setRenameDisabled(
-      newBoardName.trim() === board?.name || 
-      newBoardName.trim().length < 1 || 
-      newBoardName.trim().length > 25
-    );
-  }, [newBoardName, board]);
 
   // Helper function to open the rename dialog
   const handleOpenRenameDialog = () => {
@@ -574,7 +566,7 @@ function BoardView({ darkMode }) {
           </Typography>
           {board.owner === currentUserId && ( // Check if the current user is the owner
             <Tooltip title="Edit Board Name">
-              <IconButton onClick={() => setRenameDialogOpen(true)} size="small">
+              <IconButton onClick={handleOpenRenameDialog} size="small">
                 <EditIcon />
               </IconButton>
             </Tooltip>

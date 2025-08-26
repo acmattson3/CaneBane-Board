@@ -2,6 +2,7 @@ const express = require('express'); // Importing the Express framework
 const cors = require('cors'); // Importing CORS middleware for cross-origin requests
 const morgan = require('morgan'); // Importing Morgan for logging HTTP requests
 const path = require('path'); // Importing path module to handle file paths
+const fs = require('fs'); // Importing fs module to check for build directories
 const connectDB = require('./config/db'); // Importing the database connection function
 const authRoutes = require('./routes/auth'); // Importing authentication routes
 const boardRoutes = require('./routes/boards'); // Importing board routes
@@ -22,12 +23,17 @@ app.use('/api/auth', authRoutes); // Setting up authentication routes
 app.use('/api/boards', boardRoutes); // Setting up board routes
 
 // Serve React Frontend
-const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
-app.use(express.static(clientBuildPath)); // Serve static files from React build directory
+// When the client build directory does not exist (e.g., in Docker images where
+// the build is copied into server/public), fall back to that location.
+const clientBuildPath = fs.existsSync(path.join(__dirname, '..', 'client', 'build'))
+  ? path.join(__dirname, '..', 'client', 'build')
+  : path.join(__dirname, 'public');
+
+app.use(express.static(clientBuildPath)); // Serve static files from the resolved path
 
 // Catch-all route to serve React app for non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(clientBuildPath, 'index.html'));
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 // Error handling middleware
