@@ -527,7 +527,7 @@ function BoardView({ darkMode }) {
         )}
         {assignedMember && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-            <Tooltip title={`Assigned to: ${assignedMember.name || assignedMember.email}`}>
+            <Tooltip title={`Assigned to: ${assignedMember.displayName || assignedMember.email}`}>
               <Avatar
                 sx={{
                   width: 24,
@@ -536,7 +536,7 @@ function BoardView({ darkMode }) {
                   bgcolor: isLightMode ? 'primary.main' : 'primary.dark',
                 }}
               >
-                {assignedMember.name ? assignedMember.name[0].toUpperCase() : <PersonIcon />}
+                {assignedMember.displayName ? assignedMember.displayName[0].toUpperCase() : <PersonIcon />}
               </Avatar>
             </Tooltip>
           </Box>
