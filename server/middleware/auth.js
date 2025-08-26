@@ -19,7 +19,7 @@ const auth = async (req, res, next) => {
     // Attach the token and user information to the request object
     req.token = token; // Store the token in the request object
     req.user = user; // Store the user object in the request object
-    //console.log(`Authenticated user: ${user.name} (ID: ${user._id})`); // Log authenticated user information
+    //console.log(`Authenticated user: ${user.displayName} (ID: ${user._id})`); // Log authenticated user information
     next(); // Proceed to the next middleware or route handler
   } catch (error) {
     console.error('Authentication error:', error); // Log authentication error

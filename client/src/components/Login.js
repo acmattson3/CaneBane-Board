@@ -6,7 +6,7 @@ import { login } from '../services/auth'; // Importing login function from auth 
 
 // Login component for user authentication
 function Login() {
-  const [email, setEmail] = useState(''); // State for email input
+  const [identifier, setIdentifier] = useState(''); // State for email or username input
   const [password, setPassword] = useState(''); // State for password input
   const [error, setError] = useState(''); // State for error messages
   const navigate = useNavigate(); // Hook to programmatically navigate
@@ -16,7 +16,7 @@ function Login() {
     e.preventDefault(); // Prevent default form submission
     setError(''); // Clear previous error messages
     try {
-      await login(email, password); // Attempt to log in with email and password
+      await login(identifier, password); // Attempt to log in with identifier and password
       navigate('/dashboard'); // Redirect to dashboard after successful login
     } catch (err) {
       console.error('Login error:', err); // Log error to console
@@ -36,13 +36,13 @@ function Login() {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address" // Label for email input
-            name="email"
-            autoComplete="email" // Auto-complete for email
+            id="identifier"
+            label="Email or Username" // Label for identifier input
+            name="identifier"
+            autoComplete="username" // Auto-complete for username
             autoFocus // Autofocus on this input
-            value={email} // Controlled input for email
-            onChange={(e) => setEmail(e.target.value)} // Update email state on change
+            value={identifier} // Controlled input for identifier
+            onChange={(e) => setIdentifier(e.target.value)} // Update identifier state on change
           />
           <TextField
             margin="normal"
