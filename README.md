@@ -33,6 +33,8 @@ Before you begin, ensure you have the following installed on your system:
    JWT_SECRET=your_secret_key_here
    ```
    Replace `your_secret_key_here` with a secure random string.
+   When running via Docker Compose, the server will fall back to
+   `mongodb://mongodb:27017/canebane` if `MONGODB_URI` is not set.
 
 4. Start MongoDB on your local machine.
 
